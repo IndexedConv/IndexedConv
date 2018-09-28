@@ -3,10 +3,9 @@ import math
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
-import gammaLearner.utils as utils
+import utils.utils as utils
 
 
 class IndexedMaxPool2d(nn.Module):
@@ -154,8 +153,6 @@ class IndexedConv(nn.Module):
         self.kernel_size = kernel_size
         self.indices, self.mask = utils.prepare_mask(indices)
 
-        # self.register_buffer('indices', indices)
-
         self.weight = Parameter(torch.Tensor(
             out_channels, in_channels // groups, kernel_size))
 
@@ -197,17 +194,3 @@ class IndexedConv(nn.Module):
             s += ', bias=False'
         s += ')'
         return s.format(name=self.__class__.__name__, **self.__dict__)
-
-
-class MaskedConv2d(nn.Conv2d):
-
-    def forward(self, x):
-        if self.kernel_size == (3, 3):
-            mask = torch.tensor([[1., 1., 0.], [1., 1., 1.], [0., 1., 1.]]).to(x.device)
-        elif self.kernel_size == (5, 5):
-            mask = torch.tensor([[1., 1., 1., 0., 0.],
-                                 [1., 1., 1., 1., 0.],
-                                 [1., 1., 1., 1., 1.],
-                                 [0., 1., 1., 1., 1.],
-                                 [0., 0., 1., 1., 1.]]).to(x.device)
-        return F.conv2d(x, self.weight * mask, bias=self.bias, stride=self.stride, padding=self.padding)

@@ -17,7 +17,10 @@ from utils.data import NumpyDataset, NumpyToTensor
 from nets.aid import WideNet, WideNetIndexConvIndexPool, WideNetMasked
 
 
-main_directory = '/home/indexedconv'
+main_directory = '.'
+if not os.path.exists(main_directory):
+    os.makedirs(main_directory)
+
 experiment_name = 'Benchmark_indexed_conv'
 data_directory = main_directory + '/../ext_data'
 experiment_directory = main_directory + '/' + experiment_name

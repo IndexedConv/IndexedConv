@@ -64,8 +64,10 @@ def test(model, device, test_loader, epoch, val=True, writer=None):
 
 
 if __name__ == '__main__':
-    main_directory = '/uds_data/glearn/Data/experiments'
-    # main_directory = '/home/mikael/indexedconv'
+    main_directory = '.'
+    if not os.path.exists(main_directory):
+        os.makedirs(main_directory)
+        
     experiment_name = 'IndexedConv_cifar_wideZ2net_nn'
     data_directory = main_directory + '/../ext_data'
     experiment_directory = main_directory + '/' + experiment_name

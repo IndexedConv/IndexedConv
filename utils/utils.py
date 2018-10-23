@@ -1,95 +1,9 @@
-import os
 import logging
-import inspect
-import csv
 import subprocess
-import collections
-import json
 
-import h5py
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from ignite.trainer import TrainingEvents
-
-
-# def browse_folder(data_folder, extension=['.hdf5', '.h5']):
-#     """
-#     Browse folder given to find hdf5 files
-#     Parameters
-#     ----------
-#     data_folder (string)
-#     extension (string)
-#
-#     Returns
-#     -------
-#     set of hdf5 files
-#     """
-#     logger = logging.getLogger(__name__)
-#     try:
-#         assert isinstance(extension, list)
-#     except AssertionError as e:
-#         logger.exception('extension must be provided as a list')
-#         raise e
-#     logger.debug('browse folder')
-#     file_set = set()
-#     for dirname, dirnames, filenames in os.walk(data_folder):
-#         logger.debug('found folders : {}'.format(dirnames))
-#         logger.debug('in {}'.format(dirname))
-#         logger.debug('found files : {}'.format(filenames))
-#         for file in filenames:
-#             filename, ext = os.path.splitext(file)
-#             if ext in extension:
-#                 file_set.add(dirname+'/'+file)
-#     return file_set
-#
-#
-# def prepare_experiment_folder(main_directory, experiment_name):
-#     """
-#     Prepare experiment folder and check if already exists
-#     Parameters
-#     ----------
-#     main_directory (string)
-#     experiment_name (string)
-#
-#     Returns
-#     -------
-#
-#     """
-#     logger = logging.getLogger(__name__)
-#     experiment_directory = main_directory + '/' + experiment_name + '/'
-#     if not os.path.exists(experiment_directory):
-#         os.makedirs(experiment_directory)
-#     else:
-#         logger.info('The experiment {} already exists !'.format(experiment_name))
-#         # TODO handle this differently as we may be able to not answer on MUST
-#         # start_train = input('Continue [y/n] ?')
-#         # if start_train == 'n':
-#         #     exit()
-#     logger.info('Experiment directory: %s ' % experiment_directory)
-#
-#
-# def prepare_tensorboard_folder(main_directory, experiment_name):
-#     """
-#     Prepare tensorboard run folder for the experiment
-#     Parameters
-#     ----------
-#     main_directory (string)
-#     experiment_name (string)
-#
-#     Returns
-#     -------
-#
-#     """
-#     logger = logging.getLogger(__name__)
-#     run_directory = main_directory + '/runs/' + experiment_name
-#     if not os.path.exists(run_directory):
-#         os.makedirs(run_directory)
-#     logger.info('Tensorboard run directory: {} '.format(run_directory))
-#     return run_directory
-#
-
 
 
 def get_gpu_usage_map(device_id):
@@ -136,6 +50,7 @@ def compute_total_parameter_number(net):
         num_parameters += param.clone().cpu().data.view(-1).size(0)
 
     return num_parameters
+
 
 # #####################
 # # Indexed functions #

@@ -73,7 +73,11 @@ class TestIndexedMaxPool2d(unittest.TestCase):
 
 class TestIndexedAveragePool2d(unittest.TestCase):
     def setUp(self):
-        self.data_1 = torch.tensor([1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4],
+        self.data_1 = torch.tensor([1, 0, 2, 0, 3,
+                                    0, 4, 0, 5, 1,
+                                    0, 2, 0, 3, 0,
+                                    4, 0, 5, 1, 0,
+                                    2, 0, 3, 0, 4],
                                    dtype=torch.float).unsqueeze(0).unsqueeze(0)
         self.data_3 = torch.tensor([[1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4],
                                     [1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4],
@@ -85,17 +89,17 @@ class TestIndexedAveragePool2d(unittest.TestCase):
                                      [15, 16, 17, 18, 19],
                                      [20, 21, 22, 23, 24]]).unsqueeze(0).unsqueeze(0)
         neighbours_indices = neighbours_extraction(index_matrix, kernel_type='Pool', stride=2)
-        self.maxpool = IndexedMaxPool2d(neighbours_indices)
+        self.avgpool = IndexedAveragePool2d(neighbours_indices)
 
-    def test_maxpool1(self):
-        torch.testing.assert_allclose(self.maxpool(self.data_1),
-                                      torch.tensor([[[4.,  5.,  4.,  5.]]]))
+    def test_averagepool1(self):
+        torch.testing.assert_allclose(self.avgpool(self.data_1),
+                                      torch.tensor([[[1.25,  1.75,  1.5,  2.25]]]))
 
-    def test_maxpool3(self):
-        torch.testing.assert_allclose(self.maxpool(self.data_3),
-                                      torch.tensor([[[4., 5., 4., 5.],
-                                                     [4., 5., 4., 5.],
-                                                     [4., 5., 4., 5.]]]))
+    def test_averagepool3(self):
+        torch.testing.assert_allclose(self.avgpool(self.data_3),
+                                      torch.tensor([[[1.25,  1.75,  1.5,  2.25],
+                                                     [1.25,  1.75,  1.5,  2.25],
+                                                     [1.25,  1.75,  1.5,  2.25]]]))
 
 
 if __name__ == '__main__':

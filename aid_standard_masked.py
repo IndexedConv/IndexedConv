@@ -11,9 +11,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 
-import utils.utils as utils
-from utils.data import NumpyDataset, NumpyToTensor, SquareToHexa
-from nets.aid import WideNetMasked
+import indexedconv.utils.utils as utils
+from indexedconv.utils.data import NumpyDataset, NumpyToTensor, SquareToHexa
+from indexedconv.nets.aid import WideNetMasked
 
 
 def train(model, device, train_loader, optimizer, epoch, writer=None):

@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset
-import utils.utils as utils
+import indexedconv.utils.utils as utils
 
 
 class NumpyDataset(Dataset):

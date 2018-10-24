@@ -4,9 +4,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-from modules.masked import MaskedConv2d
-import utils.utils as utils
-import modules.indexed as indexed
+from indexedconv.engine import MaskedConv2d
+import indexedconv.utils.utils as utils
+import indexedconv.engine as engine
 
 
 class WideNetIndexConvIndexPool(nn.Module):
@@ -44,16 +44,16 @@ class WideNetIndexConvIndexPool(nn.Module):
         indices_conv0 = utils.neighbours_extraction(index_matrix0,
                                                     kernel_type=camera_layout,
                                                     stride=2)
-        self.cv0 = indexed.IndexedConv(3, n1, indices_conv0)
+        self.cv0 = engine.IndexedConv(3, n1, indices_conv0)
 
         # Layer 1 : IndexedConv
         index_matrix1 = utils.pool_index_matrix(index_matrix0)
         indices_conv1 = utils.neighbours_extraction(index_matrix1,
                                                     kernel_type=camera_layout)
-        self.cv1_1 = indexed.IndexedConv(n1, n1, indices_conv1)
-        self.cv1_2 = indexed.IndexedConv(n1, n1, indices_conv1)
-        self.cv1_3 = indexed.IndexedConv(n1, n1, indices_conv1)
-        self.cv1_4 = indexed.IndexedConv(n1, n1, indices_conv1)
+        self.cv1_1 = engine.IndexedConv(n1, n1, indices_conv1)
+        self.cv1_2 = engine.IndexedConv(n1, n1, indices_conv1)
+        self.cv1_3 = engine.IndexedConv(n1, n1, indices_conv1)
+        self.cv1_4 = engine.IndexedConv(n1, n1, indices_conv1)
 
         self.bn1_1 = nn.BatchNorm1d(n1)
         self.bn1_2 = nn.BatchNorm1d(n1)
@@ -62,19 +62,19 @@ class WideNetIndexConvIndexPool(nn.Module):
 
         indices_res_conv1 = utils.neighbours_extraction(index_matrix1,
                                                         kernel_type='One', stride=2)
-        self.res_cv1to2 = indexed.IndexedConv(n1, n2, indices_res_conv1)
+        self.res_cv1to2 = engine.IndexedConv(n1, n2, indices_res_conv1)
 
         # Layer 2 : IndexedConv
         indices_conv1to2 = utils.neighbours_extraction(index_matrix1,
                                                     kernel_type=camera_layout, stride=2)
-        self.cv2_1 = indexed.IndexedConv(n1, n2, indices_conv1to2)
+        self.cv2_1 = engine.IndexedConv(n1, n2, indices_conv1to2)
 
         index_matrix2 = utils.pool_index_matrix(index_matrix1, kernel_type=camera_layout, stride=2)
         indices_conv2 = utils.neighbours_extraction(index_matrix2,
                                                     kernel_type=camera_layout)
-        self.cv2_2 = indexed.IndexedConv(n2, n2, indices_conv2)
-        self.cv2_3 = indexed.IndexedConv(n2, n2, indices_conv2)
-        self.cv2_4 = indexed.IndexedConv(n2, n2, indices_conv2)
+        self.cv2_2 = engine.IndexedConv(n2, n2, indices_conv2)
+        self.cv2_3 = engine.IndexedConv(n2, n2, indices_conv2)
+        self.cv2_4 = engine.IndexedConv(n2, n2, indices_conv2)
 
         self.bn2_1 = nn.BatchNorm1d(n1)
         self.bn2_2 = nn.BatchNorm1d(n2)
@@ -83,18 +83,18 @@ class WideNetIndexConvIndexPool(nn.Module):
 
         indices_res_conv2 = utils.neighbours_extraction(index_matrix2,
                                                         kernel_type='One', stride=2)
-        self.res_cv2to3 = indexed.IndexedConv(n2, n3, indices_res_conv2)
+        self.res_cv2to3 = engine.IndexedConv(n2, n3, indices_res_conv2)
 
         # Layer 3 : IndexedConv
         indices_conv2to3 = utils.neighbours_extraction(index_matrix2,
                                                        kernel_type=camera_layout, stride=2)
-        self.cv3_1 = indexed.IndexedConv(n2, n3, indices_conv2to3)
+        self.cv3_1 = engine.IndexedConv(n2, n3, indices_conv2to3)
         index_matrix3 = utils.pool_index_matrix(index_matrix2, kernel_type=camera_layout, stride=2)
         indices_conv3 = utils.neighbours_extraction(index_matrix3,
                                                     kernel_type=camera_layout)
-        self.cv3_2 = indexed.IndexedConv(n3, n3, indices_conv3)
-        self.cv3_3 = indexed.IndexedConv(n3, n3, indices_conv3)
-        self.cv3_4 = indexed.IndexedConv(n3, n3, indices_conv3)
+        self.cv3_2 = engine.IndexedConv(n3, n3, indices_conv3)
+        self.cv3_3 = engine.IndexedConv(n3, n3, indices_conv3)
+        self.cv3_4 = engine.IndexedConv(n3, n3, indices_conv3)
 
         self.bn3_1 = nn.BatchNorm1d(n2)
         self.bn3_2 = nn.BatchNorm1d(n3)
@@ -106,7 +106,7 @@ class WideNetIndexConvIndexPool(nn.Module):
         self.conv4 = nn.Conv1d(in_channels=n3, out_channels=n_out, kernel_size=1, stride=1)
 
         for m in self.modules():
-            if isinstance(m, indexed.IndexedConv):
+            if isinstance(m, engine.IndexedConv):
                 if m.kernel_size == 7:
                     ks = 9
                 else:

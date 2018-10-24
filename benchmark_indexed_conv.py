@@ -10,10 +10,10 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import numpy as np
 
-import utils.utils as utils
-import modules.indexed as indexed
-from utils.data import NumpyDataset, NumpyToTensor
-from nets.aid import WideNet, WideNetIndexConvIndexPool, WideNetMasked
+import indexedconv.utils.utils as utils
+import indexedconv.engine as engine
+from indexedconv.utils.data import NumpyDataset, NumpyToTensor
+from indexedconv.nets.aid import WideNet, WideNetIndexConvIndexPool, WideNetMasked
 
 
 main_directory = '.'
@@ -82,7 +82,7 @@ for batch_size in batch_sizes:
     indices_conv0_square = utils.neighbours_extraction(index_matrix_square,
                                                        kernel_type='Square',
                                                        stride=1)
-    cv_square = indexed.IndexedConv(c_in, c_out, indices_conv0_square)
+    cv_square = engine.IndexedConv(c_in, c_out, indices_conv0_square)
 
     cv_nn.to(device)
     cv_square.to(device)

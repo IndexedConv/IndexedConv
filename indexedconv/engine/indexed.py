@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
 
-import utils.utils as utils
+import indexedconv.utils.utils as utils
 
 
 class IndexedMaxPool2d(nn.Module):

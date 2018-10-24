@@ -5,8 +5,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="IndexedConv",
-    version="0.1.0a0",
-    author="M. Jacquemont",
+    version="0.1.0a",
+    author="M. Jacquemont, T. Vuillaume, L. Antiga",
     author_email="jacquemont@lapp.in2p3.fr",
     description="An implementation of indexed convolution and pooling",
     long_description=long_description,
@@ -25,4 +25,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    license='MIT',
 )

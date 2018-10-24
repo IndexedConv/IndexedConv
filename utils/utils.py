@@ -284,34 +284,6 @@ def prepare_mask(indices):
 # # Transformations #
 # ###################
 
-def square_to_hexagonal_basic(image):
-    """
-    Rough sampling of square images to hexagonal grid
-    Parameters
-    ----------
-    image (torch.Tensor of shape (c, n, m)
-
-    Returns
-    -------
-    the image as a torch.Tensor and its index matrix
-    """
-    index_matrix = torch.ones(image.shape[1], image.shape[2] + np.ceil(image.shape[1]/2)) * -1
-    image_vec = torch.zeros((image.shape[0], image.shape[1] * image.shape[2]))
-    n = 0
-    for i in range(image.shape[1]):
-        for j in range(image.shape[2]):
-            if i % 2 == 1:
-                if j == (image.shape[2] - 1):
-                    image_vec[:, n] = image[:, i, j]
-                else:
-                    image_vec[:, n] = (image[:, i, j] + image[:, i, j+1]) / 2
-            else:
-                image_vec[:, n] = image[:, i, j]
-            index_matrix[i, j + int(np.ceil(i/2))] = n
-            n += 1
-    # image_vec = torch.Tensor(image_vec)
-    return image_vec, index_matrix
-
 
 def square_to_hexagonal_index_matrix(image):
     """
@@ -345,11 +317,12 @@ def square_to_hexagonal(image):
     the image as a torch.Tensor
     """
     image_tr = image.clone()
+    output_image = image.clone()
     image_tr[:, :, :-1] = image[:, :, 1:]
     image_mean = (image + image_tr) / 2
-    image[:, 1::2, :] = image_mean[:, 1::2, :]
+    output_image[:, 1::2, :] = image_mean[:, 1::2, :]
 
-    return image.view(image.shape[0], -1)
+    return output_image.view(output_image.shape[0], -1)
 
 
 def build_hexagonal_position(index_matrix):

@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-import indexedconv.utils.utils as utils
+import indexedconv.utils as utils
 import indexedconv.engine as engine
 
 

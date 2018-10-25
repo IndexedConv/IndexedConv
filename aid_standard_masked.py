@@ -11,8 +11,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 
-import indexedconv.utils.utils as utils
-from indexedconv.utils.data import NumpyDataset, NumpyToTensor, SquareToHexa
+import indexedconv.utils as utils
 from indexedconv.nets.aid import WideNetMasked
 
 
@@ -110,7 +109,7 @@ if __name__ == '__main__':
         aid = datasets.ImageFolder(data_directory + '/AID',
                                    transform=transforms.Compose([transforms.Resize(resize_size),
                                                                  transforms.ToTensor(),
-                                                                 SquareToHexa()]))
+                                                                 utils.SquareToHexa()]))
         with h5py.File(data_directory + '/aid' + str(resize_size[0]) + '_hexa.h5', 'w') as f:
             images = []
             labels = []
@@ -141,7 +140,7 @@ if __name__ == '__main__':
                 data_shifted[:, :, i, j] = data[:, :, int(index_matrix[i, j])]
 
     # Datasets
-    dataset = NumpyDataset(data_shifted, labels, transform=NumpyToTensor())
+    dataset = utils.NumpyDataset(data_shifted, labels, transform=utils.NumpyToTensor())
 
     # Run the experiments
     for seed in seeds:

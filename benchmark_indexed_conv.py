@@ -10,9 +10,8 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import numpy as np
 
-import indexedconv.utils.utils as utils
+import indexedconv.utils as utils
 import indexedconv.engine as engine
-from indexedconv.utils.data import NumpyDataset, NumpyToTensor
 from indexedconv.nets.aid import WideNet, WideNetIndexConvIndexPool, WideNetMasked
 
 
@@ -165,8 +164,8 @@ for batch_size in batch_sizes:
             if not int(index_matrix[i, j]) == -1:
                 data_shifted[:, :, i, j] = data[:, :, int(index_matrix[i, j])]
 
-    sh_dataset = NumpyDataset(data_shifted, labels, transform=NumpyToTensor())
-    hex_dataset = NumpyDataset(data, labels, transform=NumpyToTensor())
+    sh_dataset = utils.NumpyDataset(data_shifted, labels, transform=utils.NumpyToTensor())
+    hex_dataset = utils.NumpyDataset(data, labels, transform=utils.NumpyToTensor())
     sh_loader = DataLoader(sh_dataset, batch_size=batch_size, shuffle=False)
     hex_loader = DataLoader(hex_dataset, batch_size=batch_size, shuffle=False)
 

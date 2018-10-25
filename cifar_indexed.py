@@ -15,8 +15,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 
-import indexedconv.utils.utils as utils
-from indexedconv.utils.data import NumpyDataset, NumpyToTensor, HDF5Dataset, SquareToHexa
+import indexedconv.utils as utils
 from indexedconv.nets.cifar import WideNetIndexConvIndexPool, WideNet
 
 
@@ -132,7 +131,7 @@ if __name__ == '__main__':
 
         if not os.path.exists(data_directory + '/cifar10.hdf5'):
             train_set = datasets.CIFAR10(data_directory, train=True, download=True,
-                                         transform=transforms.Compose([transforms.ToTensor(), SquareToHexa()]))
+                                         transform=transforms.Compose([transforms.ToTensor(), utils.SquareToHexa()]))
             with h5py.File(data_directory + '/cifar10.hdf5', 'w') as f:
                 images = []
                 labels = []
@@ -145,7 +144,7 @@ if __name__ == '__main__':
                 f.attrs['index_matrix'] = index_matrix
         if not os.path.exists(data_directory + '/cifar10_test.hdf5'):
             test_set = datasets.CIFAR10(data_directory, train=False,
-                                        transform=transforms.Compose([transforms.ToTensor(), SquareToHexa()]))
+                                        transform=transforms.Compose([transforms.ToTensor(), utils.SquareToHexa()]))
             with h5py.File(data_directory + '/cifar10_test.hdf5', 'w') as f:
                 images = []
                 labels = []
@@ -201,9 +200,9 @@ if __name__ == '__main__':
     test_data = test_data_flat.T.reshape(test_data.shape[0:2] + (-1,))
 
     # Datasets
-    train_set = NumpyDataset(train_data_all, train_labels_all, transform=NumpyToTensor())
-    val_set = NumpyDataset(test_data, test_labels, transform=NumpyToTensor())
-    test_set = NumpyDataset(test_data, test_labels, transform=NumpyToTensor())
+    train_set = utils.NumpyDataset(train_data_all, train_labels_all, transform=utils.NumpyToTensor())
+    val_set = utils.NumpyDataset(test_data, test_labels, transform=utils.NumpyToTensor())
+    test_set = utils.NumpyDataset(test_data, test_labels, transform=utils.NumpyToTensor())
     # Data loaders
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=8)
     val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=8)
@@ -218,7 +217,7 @@ if __name__ == '__main__':
         # Plot a resampled image to check
         if hexa:
             img, _ = datasets.CIFAR10(data_directory, train=True, download=True, transform=transforms.ToTensor())[seed]
-            img_hex, _ = HDF5Dataset(data_directory + '/cifar10.hdf5', transform=NumpyToTensor())[seed]
+            img_hex, _ = utils.HDF5Dataset(data_directory + '/cifar10.hdf5', transform=utils.NumpyToTensor())[seed]
             plot_image(img, img_hex, index_matrix,
                        experiment_directory + '/hex_cifar_' + str(seed) + '.png', writer=writer)
 

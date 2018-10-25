@@ -15,9 +15,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 
-import utils.utils as utils
-from utils.data import NumpyDataset, NumpyToTensor, HDF5Dataset, SquareToHexa
-from nets.aid import WideNetIndexConvIndexPool
+import indexedconv.utils as utils
+from indexedconv.nets.aid import WideNetIndexConvIndexPool
 
 
 def train(model, device, train_loader, optimizer, epoch, writer=None):
@@ -139,7 +138,7 @@ if __name__ == '__main__':
             aid = datasets.ImageFolder(data_directory + '/AID',
                                        transform=transforms.Compose([transforms.Resize(resize_size),
                                                                      transforms.ToTensor(),
-                                                                     SquareToHexa()]))
+                                                                     utils.SquareToHexa()]))
             with h5py.File(data_directory + '/aid' + str(resize_size[0]) + '_hexa.h5', 'w') as f:
                 images = []
                 labels = []
@@ -198,7 +197,7 @@ if __name__ == '__main__':
     data = utils.normalize(data)
 
     # Datasets
-    dataset = NumpyDataset(data, labels, transform=NumpyToTensor())
+    dataset = utils.NumpyDataset(data, labels, transform=utils.NumpyToTensor())
 
     # Run the experiments
     for seed in seeds:
@@ -226,8 +225,8 @@ if __name__ == '__main__':
             img, _ = datasets.ImageFolder(data_directory + '/AID',
                                           transform=transforms.Compose([transforms.Resize(resize_size),
                                                                         transforms.ToTensor()]))[seed]
-            img_hex, _ = HDF5Dataset(data_directory + '/aid' + str(resize_size[0]) + '_hexa.h5',
-                                     transform=NumpyToTensor())[seed]
+            img_hex, _ = utils.HDF5Dataset(data_directory + '/aid' + str(resize_size[0]) + '_hexa.h5',
+                                     transform=utils.NumpyToTensor())[seed]
             plot_image(img, img_hex, index_matrix,
                        experiment_directory + '/hex_aid_' + str(seed) + '.png', writer=writer)
 

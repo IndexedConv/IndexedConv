@@ -1,13 +1,8 @@
 import logging
 import os
 import sys
-import h5py
 
-import matplotlib as mpl
-mpl.use('Agg')  # Because of an issue in Qt5 causing seg fault
-import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
 import torch
 from torchvision import datasets
 from torch.utils.data import DataLoader
@@ -15,8 +10,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 
-import utils.utils as utils
-from utils.data import NumpyDataset, NumpyToTensor
+import indexedconv.utils as utils
 
 
 def train(model, device, train_loader, optimizer, epoch, writer=None):
@@ -132,9 +126,9 @@ if __name__ == '__main__':
     test_data = test_data_flat.T.reshape(test_data.shape[0:2] + original_size)
 
     # Datasets
-    train_set = NumpyDataset(train_data_all, train_labels_all, transform=NumpyToTensor())
-    val_set = NumpyDataset(test_data, test_labels, transform=NumpyToTensor())
-    test_set = NumpyDataset(test_data, test_labels, transform=NumpyToTensor())
+    train_set = utils.NumpyDataset(train_data_all, train_labels_all, transform=utils.NumpyToTensor())
+    val_set = utils.NumpyDataset(test_data, test_labels, transform=utils.NumpyToTensor())
+    test_set = utils.NumpyDataset(test_data, test_labels, transform=utils.NumpyToTensor())
     # Data loaders
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=8)
     val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=8)

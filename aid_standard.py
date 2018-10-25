@@ -11,9 +11,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 
-import utils.utils as utils
-from utils.data import NumpyDataset, NumpyToTensor
-from nets.aid import WideNet
+import indexedconv.utils as utils
+from indexedconv.nets.aid import WideNet
 
 
 def train(model, device, train_loader, optimizer, epoch, writer=None):
@@ -131,7 +130,7 @@ if __name__ == '__main__':
     data = data.reshape(data.shape[0], data.shape[1], resize_size[0], resize_size[1])
 
     # Datasets
-    dataset = NumpyDataset(data, labels, transform=NumpyToTensor())
+    dataset = utils.NumpyDataset(data, labels, transform=utils.NumpyToTensor())
 
     # Run the experiments
     for seed in seeds:

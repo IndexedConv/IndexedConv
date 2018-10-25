@@ -10,10 +10,9 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import numpy as np
 
-import utils.utils as utils
-import modules.indexed as indexed
-from utils.data import NumpyDataset, NumpyToTensor
-from nets.aid import WideNet, WideNetIndexConvIndexPool, WideNetMasked
+import indexedconv.utils as utils
+import indexedconv.engine as engine
+from indexedconv.nets.aid import WideNet, WideNetIndexConvIndexPool, WideNetMasked
 
 
 main_directory = '.'
@@ -82,7 +81,7 @@ for batch_size in batch_sizes:
     indices_conv0_square = utils.neighbours_extraction(index_matrix_square,
                                                        kernel_type='Square',
                                                        stride=1)
-    cv_square = indexed.IndexedConv(c_in, c_out, indices_conv0_square)
+    cv_square = engine.IndexedConv(c_in, c_out, indices_conv0_square)
 
     cv_nn.to(device)
     cv_square.to(device)
@@ -165,8 +164,8 @@ for batch_size in batch_sizes:
             if not int(index_matrix[i, j]) == -1:
                 data_shifted[:, :, i, j] = data[:, :, int(index_matrix[i, j])]
 
-    sh_dataset = NumpyDataset(data_shifted, labels, transform=NumpyToTensor())
-    hex_dataset = NumpyDataset(data, labels, transform=NumpyToTensor())
+    sh_dataset = utils.NumpyDataset(data_shifted, labels, transform=utils.NumpyToTensor())
+    hex_dataset = utils.NumpyDataset(data, labels, transform=utils.NumpyToTensor())
     sh_loader = DataLoader(sh_dataset, batch_size=batch_size, shuffle=False)
     hex_loader = DataLoader(hex_dataset, batch_size=batch_size, shuffle=False)
 

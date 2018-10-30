@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 
 from indexedconv.engine import MaskedConv2d
-import indexedconv.utils.utils as utils
+import indexedconv.utils as utils
 import indexedconv.engine as engine
 
 

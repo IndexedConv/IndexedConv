@@ -11,8 +11,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 
-import indexedconv.utils.utils as utils
-from indexedconv.utils.data import NumpyDataset, NumpyToTensor
+import indexedconv.utils as utils
 from indexedconv.nets.aid import WideNet
 
 
@@ -131,7 +130,7 @@ if __name__ == '__main__':
     data = data.reshape(data.shape[0], data.shape[1], resize_size[0], resize_size[1])
 
     # Datasets
-    dataset = NumpyDataset(data, labels, transform=NumpyToTensor())
+    dataset = utils.NumpyDataset(data, labels, transform=utils.NumpyToTensor())
 
     # Run the experiments
     for seed in seeds:

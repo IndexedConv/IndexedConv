@@ -1,3 +1,9 @@
+"""
+cifar.py
+========
+Contain nets for the cifar dataset
+"""
+
 import logging
 
 import torch.nn as nn

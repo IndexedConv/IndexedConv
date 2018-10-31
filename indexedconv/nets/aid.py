@@ -1,3 +1,9 @@
+"""
+aid.py
+========
+Contain nets for the aid dataset
+"""
+
 import logging
 
 import torch.nn as nn

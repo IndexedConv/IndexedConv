@@ -1,3 +1,9 @@
+"""
+utils.py
+========
+Contain utility functions for the indexed convolution
+"""
+
 import logging
 import subprocess
 

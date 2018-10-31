@@ -11,7 +11,7 @@ It is used in the `GammaLearn project <https://lapp-gitlab.in2p3.fr/GammaLearn/>
 
 Here you will find the code for the indexed operations as well as applied examples. The current implementation has been done for pytorch.
 
-`Documentation may be found online. <https://indexedconv.readthedocs.io/en/latest/>`
+`Documentation may be found online. <https://indexedconv.readthedocs.io/en/latest/>`_
 
 Install
 =======
@@ -48,4 +48,5 @@ Contributing
 ============
 
 All contributions are welcome.    
+
 Start by contacting the authors, either directly by email or by creating a GitHub issue.

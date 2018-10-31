@@ -2,8 +2,8 @@ import unittest
 
 import torch
 
-from modules.indexed import IndexedConv, IndexedAveragePool2d, IndexedMaxPool2d
-from utils.utils import neighbours_extraction
+from indexedconv.engine import IndexedConv, IndexedAveragePool2d, IndexedMaxPool2d
+from indexedconv.utils import neighbours_extraction
 
 
 class TestIndexedConv(unittest.TestCase):
@@ -104,4 +104,3 @@ class TestIndexedAveragePool2d(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

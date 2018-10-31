@@ -13,6 +13,10 @@ Here you will find the code for the indexed operations as well as applied exampl
 
 `Documentation may be found online. <https://indexedconv.readthedocs.io/en/latest/>`_
 
+.. image:: https://travis-ci.org/IndexedConv/IndexedConv.svg?branch=master
+    :target: https://travis-ci.org/IndexedConv/IndexedConv
+
+
 Install
 =======
 

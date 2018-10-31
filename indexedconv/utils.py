@@ -302,7 +302,8 @@ def square_to_hexagonal_index_matrix(image):
         -------
         index matrix
         """
-    index_matrix = torch.ones(image.shape[1], image.shape[2] + np.ceil(image.shape[1] / 2)) * -1
+    index_matrix = torch.ones(image.shape[1],
+                              image.shape[2] + int(np.ceil(image.shape[1] / 2))) * -1
     n = 0
     for i in range(image.shape[1]):
         for j in range(image.shape[2]):

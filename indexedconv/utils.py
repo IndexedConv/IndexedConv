@@ -15,11 +15,14 @@ from torch.utils.data import Dataset
 
 def get_gpu_usage_map(device_id):
     """Get the current gpu usage.
-    inspired from : https://discuss.pytorch.org/t/access-gpu-memory-usage-in-pytorch/3192/4
+    Inspired from `gpu usage from
+    pytorch <https://discuss.pytorch.org/t/access-gpu-memory-usage-in-pytorch/3192/4>`_
+
     Parameters
     ----------
-    device_id (int): the GPU id as GPU/Unit's 0-based index in the natural enumeration returned  by
-       the driver
+    device_id: int
+        the GPU id as GPU/Unit's 0-based index in the natural enumeration returned  by the driver
+
     Returns
     -------
     usage: dict
@@ -44,13 +47,14 @@ def get_gpu_usage_map(device_id):
 def compute_total_parameter_number(net):
     """
     Compute the total number of parameters of a network
+
     Parameters
     ----------
-    net (nn.Module): the network
+    network: nn.Module
 
     Returns
     -------
-    int: the number of parameters
+    the number of parameters: int
     """
     num_parameters = 0
     for name, param in net.named_parameters():
@@ -66,14 +70,22 @@ def compute_total_parameter_number(net):
 def create_index_matrix(nbRow, nbCol, injTable):
     """
     Creates the matrix of index of the pixels of the vector images to convert hexagonal images to square ones.
+
     Parameters
     ----------
-    nbRow (int): the number of rows of the index matrix
-    nbCol (int): the number of cols of the index matrix
-    injTable (np.array): the list of the index of the pixels of vector hexagonal image in a vector square image
-    eg : hexagonal image : [1, 2, 3, 4, 5, 6]
-    injTable : [3, 25, 26, 58, 59, 60]
-    square image : [0, 0, 1, ...., 0, 2, 3, 0, ...., 0, 4, 5, 6, 0, ...]
+    nbRow: int
+        the number of rows of the index matrix
+    nbCol: int
+        the number of cols of the index matrix
+    injTable: `numpy.array`
+        the list of the index of the pixels of vector hexagonal image in a vector square image
+
+
+    Examples:
+
+    | - hexagonal image: [1, 2, 3, 4, 5, 6]
+    | - injTable: [3, 25, 26, 58, 59, 60]
+    | - square image: [0, 0, 1, ...., 0, 2, 3, 0, ...., 0, 4, 5, 6, 0, ...]
 
     Returns
     -------
@@ -94,13 +106,15 @@ def create_index_matrix(nbRow, nbCol, injTable):
 def img2mat(input_images, index_matrix):
     """
      Transforms a batch of features of vector images in a batch of features of matrix images
+
      Parameters
      ----------
-     input_images (torch.Tensor): torch Tensor of images with shape (batch, features, image)
+     input_images: torch.Tensor
+        torch Tensor of images with shape (batch, features, image)
 
      Returns
      -------
-     Batch of features of matrix images
+     Batch of features of matrix images:
      """
     logger = logging.getLogger(__name__ + '.img2mat')
     # First create a tensor of shape : batch, features, index_matrix.size filled with zeros
@@ -122,6 +136,7 @@ def img2mat(input_images, index_matrix):
 def mat2img(input_matrix, index_matrix):
     """
     Transforms a batch of features of matrix images in a batch of features of vector images
+
     Parameters
     ----------
     input_matrix (torch.Tensor): Variable(torch Tensor) of images with shape (batch, features, matrix.size)
@@ -152,6 +167,7 @@ def mat2img(input_matrix, index_matrix):
 def pool_index_matrix(index_matrix, kernel_type='Pool', stride=2):
     """
     Pools an index matrix
+
     Parameters
     ----------
     index_matrix (torch.Tensor): matrix of index for the images, shape(1, 1, matrix.size)
@@ -268,13 +284,15 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', stride=1):
 
 def prepare_mask(indices):
     """
-    Function to prepare the indices and the mask for the gemm im2col operation
+    Function to prepare the indices and the mask for the GEMM im2col operation
+
     Parameters
     ----------
-    indices
+    indices: `numpy.ndarray`
 
     Returns
     -------
+    new_indices, mask: (`numpy.ndarray`, `numpy.ndarray`)
 
     """
     padded = indices == -1
@@ -294,6 +312,7 @@ def prepare_mask(indices):
 def square_to_hexagonal_index_matrix(image):
     """
         Creates the index matrix of square images in a hexagonal grid (axial)
+
         Parameters
         ----------
         image (torch.Tensor of shape (c, n, m)
@@ -315,6 +334,7 @@ def square_to_hexagonal_index_matrix(image):
 def square_to_hexagonal(image):
     """
     Rough sampling of square images to hexagonal grid
+
     Parameters
     ----------
     image (torch.Tensor of shape (c, n, m)
@@ -367,14 +387,20 @@ class PCA(object):
     def fit(self, D, n_components):
         """
         The computation works as follows:
-        The covariance is C = 1/(n-1) * D * D.T
-        The eigendecomp of C is: C = V Sigma V.T
-        Let Y = 1/sqrt(n-1) * D
-        Let U S V = svd(Y),
-        Then the columns of U are the eigenvectors of:
-        Y * Y.T = C
-        And the singular values S are the sqrts of the eigenvalues of C
-        We can apply PCA by multiplying by U.T
+
+        - The covariance is :code:`C = 1/(n-1) * D * D.T`
+
+        - The eigendecomp of C is: :code:`C = V Sigma V.T`
+
+        - Let :code:`Y = 1/sqrt(n-1) * D`
+
+        - Let :code:`U S V = svd(Y)`,
+
+        - Then the columns of U are the eigenvectors of :code:`Y * Y.T = C`
+
+        - And the singular values S are the sqrts of the eigenvalues of C
+
+        - We can apply PCA by multiplying by U.T
         """
 
         # We require scaled, zero-mean data to SVD,
@@ -390,13 +416,13 @@ class PCA(object):
     def transform(self, D, whiten=False, ZCA=False,
                   regularizer=10 ** (-5)):
         """
-        We want to whiten, which can be done by multiplying by Sigma^(-1/2) U.T
+        We want to whiten, which can be done by multiplying by :math:`\sigma^{-1/2} U.T`
+
         Any orthogonal transformation of this is also white,
-        and when ZCA=True we choose:
-         U Sigma^(-1/2) U.T
+        and when :code:`ZCA=True` we choose :math:`U \sigma^{-1/2} U.T`
         """
         if whiten:
-            # Compute Sigma^(-1/2) = S^-1,
+            # Compute :math:`\sigma^{-1/2} = S^{-1}`,
             # with smoothing for numerical stability
             Sinv = 1.0 / (self.S + regularizer)
 

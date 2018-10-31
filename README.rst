@@ -15,7 +15,9 @@ Here you will find the code for the indexed operations as well as applied exampl
 
 .. image:: https://travis-ci.org/IndexedConv/IndexedConv.svg?branch=master
     :target: https://travis-ci.org/IndexedConv/IndexedConv
-
+.. image:: https://readthedocs.org/projects/indexed-convolution/badge/?version=latest
+    :target: https://indexed-convolution.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 Install
 =======

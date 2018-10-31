@@ -11,7 +11,7 @@ It is used in the `GammaLearn project <https://lapp-gitlab.in2p3.fr/GammaLearn/>
 
 Here you will find the code for the indexed operations as well as applied examples. The current implementation has been done for pytorch.
 
-`Documentation may be found online. <https://indexedconv.readthedocs.io/en/latest/>`_
+`Documentation may be found online. <https://indexed-convolution.readthedocs.io/en/latest/>`_
 
 .. image:: https://travis-ci.org/IndexedConv/IndexedConv.svg?branch=master
     :target: https://travis-ci.org/IndexedConv/IndexedConv

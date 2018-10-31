@@ -47,5 +47,5 @@ The development of the indexed convolution is born from a collaboration between 
 Contributing
 ============
 
-All contributions are welcome.
-Start contacting the authors, either directly by email or by creating a GitHub issue.
+All contributions are welcome.    
+Start by contacting the authors, either directly by email or by creating a GitHub issue.

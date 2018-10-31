@@ -119,9 +119,9 @@ class IndexedConv(nn.Module):
 
     where
 
-    | :attr: `indices` is a L x K tensor, where `K` is the size of the convolution
-    |  kernel, providing the indices of the `K` neighbors of input element `i`. A -1
-    |  entry means zero-padding.
+    | `indices` is a L x K tensor, where `K` is the size of the convolution kernel,
+    | providing the indices of the `K` neighbors of input element `i`.
+    | A -1 entry means zero-padding.
 
     Args:
         in_channels (int): Number of channels in the input tensor

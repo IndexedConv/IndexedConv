@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from modules.masked import MaskedConv2d
+from indexedconv.engine import MaskedConv2d
 
 
 class TestMaskedConv(unittest.TestCase):
@@ -46,4 +46,3 @@ class TestMaskedConv(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

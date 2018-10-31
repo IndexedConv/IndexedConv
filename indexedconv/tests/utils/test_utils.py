@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-import utils.utils as utils
+import indexedconv.utils as utils
 
 
 class TestUtils(unittest.TestCase):

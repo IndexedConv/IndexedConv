@@ -17,13 +17,6 @@ class ToVector(object):
         return sample
 
 
-class SquareToHexa(object):
-    def __call__(self, sample):
-        sample, _ = utils.square_to_hexagonal(sample)
-        # print(sample)
-        return sample
-
-
 def train(model, device, train_loader, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -84,14 +77,14 @@ train_set = datasets.MNIST(main_directory + '/../ext_data', train=True, download
                            transform=transforms.Compose([
                                transforms.ToTensor(),
                                transforms.Normalize((0.1307,), (0.3081,)),
-                               SquareToHexa()
+                               utils.SquareToHexa()
                            ]))
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
 test_loader = torch.utils.data.DataLoader(datasets.MNIST(main_directory + '/../ext_data', train=False,
                                                          transform=transforms.Compose([
                                                              transforms.ToTensor(),
                                                              transforms.Normalize((0.1307,), (0.3081,)),
-                                                             SquareToHexa()
+                                                             utils.SquareToHexa()
                                                          ])),
                                           batch_size=test_batch_size, shuffle=True)
 

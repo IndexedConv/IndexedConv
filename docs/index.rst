@@ -9,11 +9,3 @@ Welcome to indexedconv's documentation!
    license
    modules
    examples
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

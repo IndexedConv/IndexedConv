@@ -17,6 +17,7 @@ setuptools.setup(
         "numpy",
         "tensorboardx",
         "matplotlib",
+        "h5py"
 
     ],
     packages=setuptools.find_packages(),

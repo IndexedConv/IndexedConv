@@ -11,6 +11,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset
+import h5py
 
 
 def get_gpu_usage_map(device_id):
@@ -202,57 +203,64 @@ def pool_index_matrix(index_matrix, kernel_type='Pool', stride=2):
     return pooled_matrix
 
 
-def neighbours_extraction(index_matrix, kernel_type='Hex', stride=1):
+def build_kernel(kernel_type, radius=1, dilation=1):
+    """Build the convolution kernel or mask. (Following the suggestion of Miguel Lallena)
+
+    Parameters
+    ----------
+    kernel_type (str): The type of kernel. Can be hexagonal ('Hex') or square ('Square').
+    radius (int): The radius of the kernel.
+    dilation (int): The dilation. A dilation of 1 means no dilation.
+
+    Returns
+    -------
+    np.array - the kernel
+    """
+    k_size = 2 * radius * dilation + 1
+    kernel = np.zeros((k_size, k_size))
+    for i in range(0, k_size, dilation):
+        for j in range(0, k_size, dilation):
+            if kernel_type == 'Square':
+                kernel[i, j] = 1
+            elif kernel_type == 'Hex':
+                kernel[i, j] = int(np.abs(i -j) <= radius * dilation)
+            else:
+                raise ValueError('Unknown kernel type')
+
+    return kernel
+
+
+def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, dilation=1):
     """
 
     Parameters
     ----------
-    index_matrix (torch.Tensor): matrix of index for the images, shape(1, 1, matrix.size)
-    kernel_type (str): the kernel shape, Hex for hexagonal Square for a square of size 3 and Pool for a square of size 2
-    stride (int): the stride
+    index_matrix (torch.Tensor): Matrix of index for the images, shape(1, 1, matrix.size).
+    kernel_type (str): The kernel shape, Hex for hexagonal Square for a square and Pool for a square of size 2.
+    radius (int): The radius of the kernel.
+    stride (int): The stride.
+    dilation (int): The dilation. A dilation of 1 means no dilation.
 
     Returns
     -------
+    torch.tensor - the matrix of the neighbours.
 
     """
-    # TODO Find an more elegant solution to compute padding
     logger = logging.getLogger(__name__ + '.neighbours_extraction')
-    padding = 2
+    padding = radius * dilation * 2
     stride = stride
-    bound = 2
+    bound = radius * dilation * 2 if radius > 0 else 1
     if kernel_type == 'Pool':
         kernel = np.ones((2, 2), dtype=bool)
-        kernel_size = 2
         stride = 2
         bound = 1
         padding = 0
-    elif kernel_type == 'One':
-        kernel = np.ones((1, 1), dtype=bool)
-        kernel_size = 1
-        bound = 1
-        padding = 0
-    elif kernel_type == 'Hex_2':
-        kernel = np.ones((5, 5), dtype=bool)
-        kernel[0, 3:5] = False
-        kernel[1, 4] = False
-        kernel[3:5, 0] = False
-        kernel[4, 1] = False
-        kernel_size = 5
-        padding = 4
-        bound = 4
+        center = 0
     else:
-        kernel = np.ones((3, 3), dtype=bool)
-        kernel_size = 3
-        if kernel_type == 'Hex':
-            kernel[0, 2] = False
-            kernel[2, 0] = False
+        kernel = build_kernel(kernel_type, radius, dilation).astype(bool)
+        center = int((np.count_nonzero(kernel) - 1) / 2)
 
     neighbours = []
-    try:
-        assert padding % 2 == 0
-    except AssertionError as err:
-        logger.exception('Padding must be a multiple of 2 but is {}'.format(padding))
-        raise err
 
     idx_mtx = np.ones((index_matrix.size(-2)+padding, index_matrix.size(-1)+padding), dtype=int) * (-1)
     offset = int(padding/2)
@@ -263,16 +271,8 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', stride=1):
 
     for i in range(0, idx_mtx.shape[0]-bound, stride):
         for j in range(0, idx_mtx.shape[1]-bound, stride):
-            patch = idx_mtx[i:i+kernel_size, j:j+kernel_size][kernel]
-            if (kernel_type == 'Hex') and (patch[3] == -1):
-                continue
-            elif (kernel_type == 'Square') and (patch[4] == -1):
-                continue
-            elif (kernel_type == 'Pool') and (patch[0] == -1):
-                continue
-            elif (kernel_type == 'Hex_2') and (patch[9] == -1):
-                continue
-            elif (kernel_type == 'One') and (patch[0] == -1):
+            patch = idx_mtx[i:i+kernel.shape[0], j:j+kernel.shape[1]][kernel]
+            if patch[center] == -1:
                 continue
             neighbours.append(patch)
 

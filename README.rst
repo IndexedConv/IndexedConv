@@ -38,6 +38,7 @@ Requirements
     "numpy",
     "tensorboardx",
     "matplotlib",
+    "h5py"
 
 
 Authors

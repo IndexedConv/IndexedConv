@@ -206,13 +206,15 @@ def pool_index_matrix(index_matrix, kernel_type='Pool', stride=2):
 def build_kernel(kernel_type, radius=1, dilation=1):
     """Build the convolution kernel or mask. (Following the suggestion of Miguel Lallena)
 
-    :param kernel_type: The type of kernel. Can be hexagonal ('Hex') or square ('Square').
-    :type kernel_type: str
-    :param radius: The radius of the kernel.
-    :type radius: int
-    :param dilation: The dilation. A dilation of 1 means no dilation.
-    :type dilation: int
-    :return: np.array - the kernel
+    Parameters
+    ----------
+    kernel_type (str): The type of kernel. Can be hexagonal ('Hex') or square ('Square').
+    radius (int): The radius of the kernel.
+    dilation (int): The dilation. A dilation of 1 means no dilation.
+
+    Returns
+    -------
+    np.array - the kernel
     """
     k_size = 2 * radius * dilation + 1
     kernel = np.zeros((k_size, k_size))
@@ -231,17 +233,17 @@ def build_kernel(kernel_type, radius=1, dilation=1):
 def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, dilation=1):
     """
 
-    :param index_matrix: Matrix of index for the images, shape(1, 1, matrix.size).
-    :type index_matrix: torch.Tensor
-    :param kernel_type: The kernel shape, Hex for hexagonal Square for a square and Pool for a square of size 2.
-    :type kernel_type: str
-    :param radius: The radius of the kernel.
-    :type radius: int
-    :param stride: The stride.
-    :type stride: int
-    :param dilation: The dilation. A dilation of 1 means no dilation.
-    :type dilation: int
-    :returns torch.tensor - the matrix of the neighbours.
+    Parameters
+    ----------
+    index_matrix (torch.Tensor): Matrix of index for the images, shape(1, 1, matrix.size).
+    kernel_type (str): The kernel shape, Hex for hexagonal Square for a square and Pool for a square of size 2.
+    radius (int): The radius of the kernel.
+    stride (int): The stride.
+    dilation (int): The dilation. A dilation of 1 means no dilation.
+
+    Returns
+    -------
+    torch.tensor - the matrix of the neighbours.
 
     """
     logger = logging.getLogger(__name__ + '.neighbours_extraction')

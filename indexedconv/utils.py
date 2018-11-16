@@ -19,16 +19,13 @@ def get_gpu_usage_map(device_id):
     Inspired from `gpu usage from
     pytorch <https://discuss.pytorch.org/t/access-gpu-memory-usage-in-pytorch/3192/4>`_
 
-    Parameters
-    ----------
-    device_id: int
-        the GPU id as GPU/Unit's 0-based index in the natural enumeration returned  by the driver
+    Args:
+        device_id (int): the GPU id as GPU/Unit's 0-based index in the natural enumeration returned  by the driver
 
     Returns
-    -------
-    usage: dict
-        Keys are device ids as integers.
-        Values are memory usage as integers in MB, total memory usage as integers in MB, gpu utilization in %.
+        dict - usage
+            Keys are device ids as integers.
+            Values are memory usage as integers in MB, total memory usage as integers in MB, gpu utilization in %.
     """
     result = subprocess.check_output(
         [
@@ -46,16 +43,13 @@ def get_gpu_usage_map(device_id):
 
 
 def compute_total_parameter_number(net):
-    """
-    Compute the total number of parameters of a network
+    r"""Computes the total number of parameters of a network.
 
-    Parameters
-    ----------
-    network: nn.Module
+    Args:
+        net (:class:`nn.Module`): The network.
 
-    Returns
-    -------
-    the number of parameters: int
+    Returns:
+        A int
     """
     num_parameters = 0
     for name, param in net.named_parameters():
@@ -69,28 +63,28 @@ def compute_total_parameter_number(net):
 #####################
 
 def create_index_matrix(nbRow, nbCol, injTable):
-    """
-    Creates the matrix of index of the pixels of the vector images to convert hexagonal images to square ones.
+    r"""Creates the matrix of index of the pixels of the images of any shape stored as vectors.
 
-    Parameters
-    ----------
-    nbRow: int
-        the number of rows of the index matrix
-    nbCol: int
-        the number of cols of the index matrix
-    injTable: `numpy.array`
-        the list of the index of the pixels of vector hexagonal image in a vector square image
+    Args:
+        nbRow (int): The number of rows of the index matrix.
+        nbCol (int): The number of cols of the index matrix.
+        injTable (numpy.array): The injunction table, i.e. the list of the position of every pixels of the vector image
+            in a vectorized square image.
 
+    Returns:
+        A torch.Tensor containing the index of each pixel represented in a matrix.
 
-    Examples:
-
-    | - hexagonal image: [1, 2, 3, 4, 5, 6]
-    | - injTable: [3, 25, 26, 58, 59, 60]
-    | - square image: [0, 0, 1, ...., 0, 2, 3, 0, ...., 0, 4, 5, 6, 0, ...]
-
-    Returns
-    -------
-    A Variable
+    Example:
+        >>> image = [0, 1, 2, 3, 4, 5, 6]  # hexagonal image stored as a vector
+        >>> # in the hexagonal space                  0 1
+        >>> #                                        2 3 4
+        >>> #                                         5 6
+        >>> # injunction table of the pixel position of a hexagonal image represented in the axial addressing system
+        >>> injTable = [0, 1, 3, 4, 5, 7, 8]
+        >>> index_matrix = [[0, 1, -1], [2, 3, 4], [-1, 5, 6]]
+        [[0, 1, -1],
+        [2,  3, 4],
+        [-1, 5, 6]]
     """
     logger = logging.getLogger(__name__ + '.create_index_matrix')
     index_matrix = torch.full((int(nbRow), int(nbCol)), -1)
@@ -105,24 +99,22 @@ def create_index_matrix(nbRow, nbCol, injTable):
 
 
 def img2mat(input_images, index_matrix):
-    """
-     Transforms a batch of features of vector images in a batch of features of matrix images
+    """Transforms a batch of features of vector images in a batch of features of matrix images.
 
-     Parameters
-     ----------
-     input_images: torch.Tensor
-        torch Tensor of images with shape (batch, features, image)
+     Args:
+         input_images (torch.Tensor): The images with shape (batch, features, image).
+         index_matrix (torch.Tensor): The index matrix containing the index of the pixels of the images.
+            represented in a matrix
 
-     Returns
-     -------
-     Batch of features of matrix images:
+     Returns:
+         A torch.Tensor
      """
     logger = logging.getLogger(__name__ + '.img2mat')
     # First create a tensor of shape : batch, features, index_matrix.size filled with zeros
     image_matrix = input_images.new_zeros((input_images.size(0),
-                                         input_images.size(1),
-                                         index_matrix.size(-2),
-                                         index_matrix.size(-1)), dtype=torch.int)
+                                           input_images.size(1),
+                                           index_matrix.size(-2),
+                                           index_matrix.size(-1)), dtype=torch.int)
 
     logger.debug('image matrix shape : {}'.format(image_matrix.size()))
 
@@ -136,15 +128,11 @@ def img2mat(input_images, index_matrix):
 
 def mat2img(input_matrix, index_matrix):
     """
-    Transforms a batch of features of matrix images in a batch of features of vector images
+    Transforms a batch of features of matrix images in a batch of features of vector images.
 
-    Parameters
-    ----------
-    input_matrix (torch.Tensor): Variable(torch Tensor) of images with shape (batch, features, matrix.size)
-    index_matrix (torch.Tensor): matrix of index for the images, shape(1, 1, matrix.size)
-
-    Returns
-    -------
+    Args:
+        input_matrix (torch.Tensor): The images with shape (batch, features, matrix.size).
+        index_matrix (torch.Tensor): The index matrix for the images, shape(1, 1, matrix.size).
 
     """
     logger = logging.getLogger(__name__ + '.mat2img')
@@ -167,17 +155,16 @@ def mat2img(input_matrix, index_matrix):
 
 def pool_index_matrix(index_matrix, kernel_type='Pool', stride=2):
     """
-    Pools an index matrix
+    Pools an index matrix.
 
-    Parameters
-    ----------
-    index_matrix (torch.Tensor): matrix of index for the images, shape(1, 1, matrix.size)
-    kernel_type (str): the kernel shape, Hex for hexagonal Square for a square of size 3 and Pool for a square of size 2
-    stride (int): the stride
+    Args:
+        index_matrix (torch.Tensor): The index matrix for the images, shape(1, 1, matrix.size).
+        kernel_type (str): The kernel shape, Hex for hexagonal, Square for a square of size 3
+            and Pool for a square of size 2.
+        stride (int): The stride.
 
-    Returns
-    -------
-    The pooled matrix
+    Returns:
+        A torch.Tensor containing the pooled matrix.
     """
     logger = logging.getLogger(__name__ + '.pool_index_matrix')
     if kernel_type == 'Pool':
@@ -204,17 +191,15 @@ def pool_index_matrix(index_matrix, kernel_type='Pool', stride=2):
 
 
 def build_kernel(kernel_type, radius=1, dilation=1):
-    """Build the convolution kernel or mask. (Following the suggestion of Miguel Lallena)
+    """Builds the convolution kernel or mask. (Following the suggestion of Miguel Lallena).
 
-    Parameters
-    ----------
-    kernel_type (str): The type of kernel. Can be hexagonal ('Hex') or square ('Square').
-    radius (int): The radius of the kernel.
-    dilation (int): The dilation. A dilation of 1 means no dilation.
+    Args:
+        kernel_type (str): The type of kernel. Can be hexagonal ('Hex') or square ('Square').
+        radius (int): The radius of the kernel.
+        dilation (int): The dilation. A dilation of 1 means no dilation.
 
-    Returns
-    -------
-    np.array - the kernel
+    Returns:
+         A :class:`np.array`.
     """
     k_size = 2 * radius * dilation + 1
     kernel = np.zeros((k_size, k_size))
@@ -231,20 +216,40 @@ def build_kernel(kernel_type, radius=1, dilation=1):
 
 
 def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, dilation=1):
-    """
+    """Builds the matrix of indices from an index matrix based on a kernel.
 
-    Parameters
-    ----------
-    index_matrix (torch.Tensor): Matrix of index for the images, shape(1, 1, matrix.size).
-    kernel_type (str): The kernel shape, Hex for hexagonal Square for a square and Pool for a square of size 2.
-    radius (int): The radius of the kernel.
-    stride (int): The stride.
-    dilation (int): The dilation. A dilation of 1 means no dilation.
+    The matrix of indices contains for each pixel of interest its neighbours, including itself.
 
-    Returns
-    -------
-    torch.tensor - the matrix of the neighbours.
+    Args:
+        index_matrix (torch.Tensor): Matrix of index for the images, shape(1, 1, matrix.size).
+        kernel_type (str): The kernel shape, Hex for hexagonal Square for a square and Pool for a square of size 2.
+        radius (int): The radius of the kernel.
+        stride (int): The stride.
+        dilation (int): The dilation. A dilation of 1 means no dilation.
 
+    Returns:
+        A torch.Tensor - the matrix of the neighbours.
+
+    Example:
+        >>> index_matrix = [[0, 1, -1], [2, 3, 4], [-1, 5, 6]]
+        [[0, 1, -1],
+        [2,  3, 4],
+        [-1, 5, 6]]
+        >>> kernel_type = 'Hex'
+        >>> radius = 1
+        >>> kernel
+        [[1, 1, 0],
+        [ 1, 1, 1],
+        [ 0, 1, 1]]
+        >>> stride = 1
+        >>> neighbours = neighbours_extraction(index_matrix, kernel_type, radius, stride)
+        [[-1, -1, -1,  0,  1,  2,  3],
+        [ -1, -1,  0,  1, -1,  3,  4],
+        [ -1,  0, -1,  2,  3, -1,  5],
+        [  0,  1,  2,  3,  4,  5,  6],
+        [  1, -1,  3,  4, -1,  6, -1],
+        [  2,  3, -1,  5,  6, -1, -1],
+        [  3,  4,  5,  6, -1, -1, -1]]
     """
     logger = logging.getLogger(__name__ + '.neighbours_extraction')
     padding = radius * dilation * 2
@@ -283,16 +288,10 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, d
 
 
 def prepare_mask(indices):
-    """
-    Function to prepare the indices and the mask for the GEMM im2col operation
+    """Prepares the indices and the mask for the GEMM im2col operation.
 
-    Parameters
-    ----------
-    indices: `numpy.ndarray`
-
-    Returns
-    -------
-    new_indices, mask: (`numpy.ndarray`, `numpy.ndarray`)
+    Args:
+        indices (torch.Tensor): The matrix of indices containing the neighbours of each pixel of interest.
 
     """
     padded = indices == -1
@@ -310,16 +309,11 @@ def prepare_mask(indices):
 ###################
 
 def square_to_hexagonal_index_matrix(image):
-    """
-        Creates the index matrix of square images in a hexagonal grid (axial)
+    """Creates the index matrix of square images in a hexagonal grid (axial addressing system).
 
-        Parameters
-        ----------
-        image (torch.Tensor of shape (c, n, m)
+    Args:
+        image: input tensor of shape (c, n, m)
 
-        Returns
-        -------
-        index matrix
         """
     index_matrix = torch.ones(image.shape[1],
                               image.shape[2] + int(np.ceil(image.shape[1] / 2))) * -1
@@ -332,16 +326,11 @@ def square_to_hexagonal_index_matrix(image):
 
 
 def square_to_hexagonal(image):
-    """
-    Rough sampling of square images to hexagonal grid
+    """Rough sampling of square images to hexagonal grid
 
-    Parameters
-    ----------
-    image (torch.Tensor of shape (c, n, m)
+    Args:
+        image: image tensor of shape (c, n, m)
 
-    Returns
-    -------
-    the image as a torch.Tensor
     """
     image_tr = image.clone()
     image_tr[:, :, :-1] = image[:, :, 1:]
@@ -352,15 +341,10 @@ def square_to_hexagonal(image):
 
 
 def build_hexagonal_position(index_matrix):
-    """
+    """Computes the position of the pixels in the hexagonal grid from the index matrix.
 
-    Parameters
-    ----------
-    index_matrix
-
-    Returns
-    -------
-
+    Args:
+        index_matrix (tensor): The index matrix representing the index of each pixel in the axial addressing system.
     """
     pix_positions = []
     for i in range(index_matrix.shape[0]):
@@ -371,6 +355,12 @@ def build_hexagonal_position(index_matrix):
 
 
 def normalize(images):
+    """Normalizes images.
+
+    Args:
+        images: image tensor of shape (c, n, m)
+
+    """
     images -= np.mean(images, axis=(1, 2), keepdims=True)
     std = np.sqrt(images.var(axis=(1, 2), ddof=1, keepdims=True))
     std[std < 1e-8] = 1.
@@ -413,8 +403,7 @@ class PCA(object):
         D += m
         return U[:, :n_components], S[:n_components], m
 
-    def transform(self, D, whiten=False, ZCA=False,
-                  regularizer=10 ** (-5)):
+    def transform(self, D, whiten=False, ZCA=False, regularizer=10 ** (-5)):
         """
         We want to whiten, which can be done by multiplying by :math:`\sigma^{-1/2} U.T`
 
@@ -447,7 +436,14 @@ class PCA(object):
 ###################
 
 class NumpyDataset(Dataset):
+    """Loads data in a Dataset from :class:`numpy.array`.
 
+    Args:
+        data (numpy.array): The data to load.
+        labels (numpy.array): The labels of the data.
+        transform (callable, optional): A callable or a composition of callable to be applied to the data.
+        target_transform (callable, optional): A callable or a composition of callable to be applied to the labels.
+    """
     def __init__(self, data, labels, transform=None, target_transform=None):
         self.images = data
         self.labels = labels
@@ -468,7 +464,13 @@ class NumpyDataset(Dataset):
 
 
 class HDF5Dataset(Dataset):
+    """Loads data in a Dataset from a HDF5 file.
 
+    Args:
+        path (str): The path to the HDF5 file.
+        transform (callable, optional): A callable or a composition of callable to be applied to the data.
+        target_transform (callable, optional): A callable or a composition of callable to be applied to the labels.
+    """
     def __init__(self, path, transform=None, target_transform=None):
         with h5py.File(path, 'r') as f:
             self.images = f['images'][()]
@@ -492,7 +494,7 @@ class HDF5Dataset(Dataset):
 
 # Transforms
 class NumpyToTensor(object):
-    """Convert a numpy array to a tensor"""
+    """Converts a numpy array to a tensor."""
 
     def __call__(self, data):
 
@@ -501,6 +503,7 @@ class NumpyToTensor(object):
 
 
 class SquareToHexa(object):
+    """Converts an image with a square grid to an image with a hexagonal one."""
     def __call__(self, image):
         image = square_to_hexagonal(image)
         # print(sample)

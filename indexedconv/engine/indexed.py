@@ -1,3 +1,9 @@
+"""
+indexed.py
+========
+Contain the core functions for the indexed operations
+"""
+
 import logging
 import math
 
@@ -15,12 +21,12 @@ class IndexedMaxPool2d(nn.Module):
     def __init__(self, indices):
         """
         Pools the index matrix
+
         Parameters
         ----------
-        indices (LongTensor): index tensor of shape (L x kernel_size), having on each
-                              row the indices of neighbors of each element of the input
-                              a -1 indicates the absence of a neighbor, which is handled
-                              as zero-padding
+        indices (LongTensor): index tensor of shape (L x kernel_size),
+        having on each row the indices of neighbors of each element of the input
+        a -1 indicates the absence of a neighbor, which is handled as zero-padding
         """
         super(IndexedMaxPool2d, self).__init__()
         self.logger = logging.getLogger(__name__ + '.IndexedMaxPool2d')
@@ -29,6 +35,7 @@ class IndexedMaxPool2d(nn.Module):
 
     def forward(self, input_images):
         """
+        Forward propagation
 
         Parameters
         ----------
@@ -44,7 +51,7 @@ class IndexedMaxPool2d(nn.Module):
         self.mask = self.mask.to(input_images.device)
 
         col = input_images[..., self.indices] * self.mask
-        
+
         out, _ = torch.max(col, 2)
 
         return out
@@ -57,6 +64,7 @@ class IndexedAveragePool2d(nn.Module):
     def __init__(self, indices):
         """
         Pools the index matrix
+        
         Parameters
         ----------
         indices (LongTensor): index tensor of shape (L x kernel_size), having on each
@@ -71,6 +79,7 @@ class IndexedAveragePool2d(nn.Module):
 
     def forward(self, input_images):
         """
+        Forward propagation
 
         Parameters
         ----------
@@ -110,17 +119,19 @@ class IndexedConv(nn.Module):
 
     where
 
-    | :attr: `indices` is a L x K tensor, where `K` is the size of the convolution
-    |  kernel, providing the indices of the `K` neighbors of input element `i`. A -1
-    |  entry means zero-padding.
+    | `indices` is a L x K tensor, where `K` is the size of the convolution kernel,
+    | providing the indices of the `K` neighbors of input element `i`.
+    | A -1 entry means zero-padding.
 
     Args:
         in_channels (int): Number of channels in the input tensor
+
         out_channels (int): Number of channels produced by the convolution
+
         indices (LongTensor): index tensor of shape (L x kernel_size), having on each
-                              row the indices of neighbors of each element of the input
-                              a -1 indicates the absence of a neighbor, which is handled
-                              as zero-padding
+        row the indices of neighbors of each element of the input a -1 indicates the absence of a
+        neighbor, which is handled as zero-padding
+
         bias (bool, optional): If ``True``, adds a learnable bias to the output. Default: ``True``
 
     Shape:

@@ -1,3 +1,9 @@
+"""
+utils.py
+========
+Contain utility functions for the indexed convolution
+"""
+
 import logging
 import subprocess
 
@@ -5,15 +11,19 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset
+import h5py
 
 
 def get_gpu_usage_map(device_id):
     """Get the current gpu usage.
-    inspired from : https://discuss.pytorch.org/t/access-gpu-memory-usage-in-pytorch/3192/4
+    Inspired from `gpu usage from
+    pytorch <https://discuss.pytorch.org/t/access-gpu-memory-usage-in-pytorch/3192/4>`_
+
     Parameters
     ----------
-    device_id (int): the GPU id as GPU/Unit's 0-based index in the natural enumeration returned  by
-       the driver
+    device_id: int
+        the GPU id as GPU/Unit's 0-based index in the natural enumeration returned  by the driver
+
     Returns
     -------
     usage: dict
@@ -38,13 +48,14 @@ def get_gpu_usage_map(device_id):
 def compute_total_parameter_number(net):
     """
     Compute the total number of parameters of a network
+
     Parameters
     ----------
-    net (nn.Module): the network
+    network: nn.Module
 
     Returns
     -------
-    int: the number of parameters
+    the number of parameters: int
     """
     num_parameters = 0
     for name, param in net.named_parameters():
@@ -60,14 +71,22 @@ def compute_total_parameter_number(net):
 def create_index_matrix(nbRow, nbCol, injTable):
     """
     Creates the matrix of index of the pixels of the vector images to convert hexagonal images to square ones.
+
     Parameters
     ----------
-    nbRow (int): the number of rows of the index matrix
-    nbCol (int): the number of cols of the index matrix
-    injTable (np.array): the list of the index of the pixels of vector hexagonal image in a vector square image
-    eg : hexagonal image : [1, 2, 3, 4, 5, 6]
-    injTable : [3, 25, 26, 58, 59, 60]
-    square image : [0, 0, 1, ...., 0, 2, 3, 0, ...., 0, 4, 5, 6, 0, ...]
+    nbRow: int
+        the number of rows of the index matrix
+    nbCol: int
+        the number of cols of the index matrix
+    injTable: `numpy.array`
+        the list of the index of the pixels of vector hexagonal image in a vector square image
+
+
+    Examples:
+
+    | - hexagonal image: [1, 2, 3, 4, 5, 6]
+    | - injTable: [3, 25, 26, 58, 59, 60]
+    | - square image: [0, 0, 1, ...., 0, 2, 3, 0, ...., 0, 4, 5, 6, 0, ...]
 
     Returns
     -------
@@ -88,13 +107,15 @@ def create_index_matrix(nbRow, nbCol, injTable):
 def img2mat(input_images, index_matrix):
     """
      Transforms a batch of features of vector images in a batch of features of matrix images
+
      Parameters
      ----------
-     input_images (torch.Tensor): torch Tensor of images with shape (batch, features, image)
+     input_images: torch.Tensor
+        torch Tensor of images with shape (batch, features, image)
 
      Returns
      -------
-     Batch of features of matrix images
+     Batch of features of matrix images:
      """
     logger = logging.getLogger(__name__ + '.img2mat')
     # First create a tensor of shape : batch, features, index_matrix.size filled with zeros
@@ -116,6 +137,7 @@ def img2mat(input_images, index_matrix):
 def mat2img(input_matrix, index_matrix):
     """
     Transforms a batch of features of matrix images in a batch of features of vector images
+
     Parameters
     ----------
     input_matrix (torch.Tensor): Variable(torch Tensor) of images with shape (batch, features, matrix.size)
@@ -146,6 +168,7 @@ def mat2img(input_matrix, index_matrix):
 def pool_index_matrix(index_matrix, kernel_type='Pool', stride=2):
     """
     Pools an index matrix
+
     Parameters
     ----------
     index_matrix (torch.Tensor): matrix of index for the images, shape(1, 1, matrix.size)
@@ -180,57 +203,64 @@ def pool_index_matrix(index_matrix, kernel_type='Pool', stride=2):
     return pooled_matrix
 
 
-def neighbours_extraction(index_matrix, kernel_type='Hex', stride=1):
+def build_kernel(kernel_type, radius=1, dilation=1):
+    """Build the convolution kernel or mask. (Following the suggestion of Miguel Lallena)
+
+    Parameters
+    ----------
+    kernel_type (str): The type of kernel. Can be hexagonal ('Hex') or square ('Square').
+    radius (int): The radius of the kernel.
+    dilation (int): The dilation. A dilation of 1 means no dilation.
+
+    Returns
+    -------
+    np.array - the kernel
+    """
+    k_size = 2 * radius * dilation + 1
+    kernel = np.zeros((k_size, k_size))
+    for i in range(0, k_size, dilation):
+        for j in range(0, k_size, dilation):
+            if kernel_type == 'Square':
+                kernel[i, j] = 1
+            elif kernel_type == 'Hex':
+                kernel[i, j] = int(np.abs(i -j) <= radius * dilation)
+            else:
+                raise ValueError('Unknown kernel type')
+
+    return kernel
+
+
+def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, dilation=1):
     """
 
     Parameters
     ----------
-    index_matrix (torch.Tensor): matrix of index for the images, shape(1, 1, matrix.size)
-    kernel_type (str): the kernel shape, Hex for hexagonal Square for a square of size 3 and Pool for a square of size 2
-    stride (int): the stride
+    index_matrix (torch.Tensor): Matrix of index for the images, shape(1, 1, matrix.size).
+    kernel_type (str): The kernel shape, Hex for hexagonal Square for a square and Pool for a square of size 2.
+    radius (int): The radius of the kernel.
+    stride (int): The stride.
+    dilation (int): The dilation. A dilation of 1 means no dilation.
 
     Returns
     -------
+    torch.tensor - the matrix of the neighbours.
 
     """
-    # TODO Find an more elegant solution to compute padding
     logger = logging.getLogger(__name__ + '.neighbours_extraction')
-    padding = 2
+    padding = radius * dilation * 2
     stride = stride
-    bound = 2
+    bound = radius * dilation * 2 if radius > 0 else 1
     if kernel_type == 'Pool':
         kernel = np.ones((2, 2), dtype=bool)
-        kernel_size = 2
         stride = 2
         bound = 1
         padding = 0
-    elif kernel_type == 'One':
-        kernel = np.ones((1, 1), dtype=bool)
-        kernel_size = 1
-        bound = 1
-        padding = 0
-    elif kernel_type == 'Hex_2':
-        kernel = np.ones((5, 5), dtype=bool)
-        kernel[0, 3:5] = False
-        kernel[1, 4] = False
-        kernel[3:5, 0] = False
-        kernel[4, 1] = False
-        kernel_size = 5
-        padding = 4
-        bound = 4
+        center = 0
     else:
-        kernel = np.ones((3, 3), dtype=bool)
-        kernel_size = 3
-        if kernel_type == 'Hex':
-            kernel[0, 2] = False
-            kernel[2, 0] = False
+        kernel = build_kernel(kernel_type, radius, dilation).astype(bool)
+        center = int((np.count_nonzero(kernel) - 1) / 2)
 
     neighbours = []
-    try:
-        assert padding % 2 == 0
-    except AssertionError as err:
-        logger.exception('Padding must be a multiple of 2 but is {}'.format(padding))
-        raise err
 
     idx_mtx = np.ones((index_matrix.size(-2)+padding, index_matrix.size(-1)+padding), dtype=int) * (-1)
     offset = int(padding/2)
@@ -241,16 +271,8 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', stride=1):
 
     for i in range(0, idx_mtx.shape[0]-bound, stride):
         for j in range(0, idx_mtx.shape[1]-bound, stride):
-            patch = idx_mtx[i:i+kernel_size, j:j+kernel_size][kernel]
-            if (kernel_type == 'Hex') and (patch[3] == -1):
-                continue
-            elif (kernel_type == 'Square') and (patch[4] == -1):
-                continue
-            elif (kernel_type == 'Pool') and (patch[0] == -1):
-                continue
-            elif (kernel_type == 'Hex_2') and (patch[9] == -1):
-                continue
-            elif (kernel_type == 'One') and (patch[0] == -1):
+            patch = idx_mtx[i:i+kernel.shape[0], j:j+kernel.shape[1]][kernel]
+            if patch[center] == -1:
                 continue
             neighbours.append(patch)
 
@@ -262,13 +284,15 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', stride=1):
 
 def prepare_mask(indices):
     """
-    Function to prepare the indices and the mask for the gemm im2col operation
+    Function to prepare the indices and the mask for the GEMM im2col operation
+
     Parameters
     ----------
-    indices
+    indices: `numpy.ndarray`
 
     Returns
     -------
+    new_indices, mask: (`numpy.ndarray`, `numpy.ndarray`)
 
     """
     padded = indices == -1
@@ -285,38 +309,10 @@ def prepare_mask(indices):
 # Transformations #
 ###################
 
-def square_to_hexagonal_basic(image):
-    """
-    Rough sampling of square images to hexagonal grid
-    Parameters
-    ----------
-    image (torch.Tensor of shape (c, n, m)
-
-    Returns
-    -------
-    the image as a torch.Tensor and its index matrix
-    """
-    index_matrix = torch.ones(image.shape[1], image.shape[2] + np.ceil(image.shape[1]/2)) * -1
-    image_vec = torch.zeros((image.shape[0], image.shape[1] * image.shape[2]))
-    n = 0
-    for i in range(image.shape[1]):
-        for j in range(image.shape[2]):
-            if i % 2 == 1:
-                if j == (image.shape[2] - 1):
-                    image_vec[:, n] = image[:, i, j]
-                else:
-                    image_vec[:, n] = (image[:, i, j] + image[:, i, j+1]) / 2
-            else:
-                image_vec[:, n] = image[:, i, j]
-            index_matrix[i, j + int(np.ceil(i/2))] = n
-            n += 1
-    # image_vec = torch.Tensor(image_vec)
-    return image_vec, index_matrix
-
-
 def square_to_hexagonal_index_matrix(image):
     """
         Creates the index matrix of square images in a hexagonal grid (axial)
+
         Parameters
         ----------
         image (torch.Tensor of shape (c, n, m)
@@ -325,7 +321,8 @@ def square_to_hexagonal_index_matrix(image):
         -------
         index matrix
         """
-    index_matrix = torch.ones(image.shape[1], image.shape[2] + np.ceil(image.shape[1] / 2)) * -1
+    index_matrix = torch.ones(image.shape[1],
+                              image.shape[2] + int(np.ceil(image.shape[1] / 2))) * -1
     n = 0
     for i in range(image.shape[1]):
         for j in range(image.shape[2]):
@@ -337,6 +334,7 @@ def square_to_hexagonal_index_matrix(image):
 def square_to_hexagonal(image):
     """
     Rough sampling of square images to hexagonal grid
+
     Parameters
     ----------
     image (torch.Tensor of shape (c, n, m)
@@ -389,14 +387,20 @@ class PCA(object):
     def fit(self, D, n_components):
         """
         The computation works as follows:
-        The covariance is C = 1/(n-1) * D * D.T
-        The eigendecomp of C is: C = V Sigma V.T
-        Let Y = 1/sqrt(n-1) * D
-        Let U S V = svd(Y),
-        Then the columns of U are the eigenvectors of:
-        Y * Y.T = C
-        And the singular values S are the sqrts of the eigenvalues of C
-        We can apply PCA by multiplying by U.T
+
+        - The covariance is :code:`C = 1/(n-1) * D * D.T`
+
+        - The eigendecomp of C is: :code:`C = V Sigma V.T`
+
+        - Let :code:`Y = 1/sqrt(n-1) * D`
+
+        - Let :code:`U S V = svd(Y)`,
+
+        - Then the columns of U are the eigenvectors of :code:`Y * Y.T = C`
+
+        - And the singular values S are the sqrts of the eigenvalues of C
+
+        - We can apply PCA by multiplying by U.T
         """
 
         # We require scaled, zero-mean data to SVD,
@@ -412,13 +416,13 @@ class PCA(object):
     def transform(self, D, whiten=False, ZCA=False,
                   regularizer=10 ** (-5)):
         """
-        We want to whiten, which can be done by multiplying by Sigma^(-1/2) U.T
+        We want to whiten, which can be done by multiplying by :math:`\sigma^{-1/2} U.T`
+
         Any orthogonal transformation of this is also white,
-        and when ZCA=True we choose:
-         U Sigma^(-1/2) U.T
+        and when :code:`ZCA=True` we choose :math:`U \sigma^{-1/2} U.T`
         """
         if whiten:
-            # Compute Sigma^(-1/2) = S^-1,
+            # Compute :math:`\sigma^{-1/2} = S^{-1}`,
             # with smoothing for numerical stability
             Sinv = 1.0 / (self.S + regularizer)
 

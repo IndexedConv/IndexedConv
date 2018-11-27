@@ -2,10 +2,17 @@ Welcome to indexedconv's documentation!
 =======================================
 
 .. toctree::
-   :maxdepth: 3
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Notes
 
    README
    license
-   modules
    examples
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Package Reference
+
+   engine
+   utils
+   nets

@@ -27,6 +27,12 @@ Install from IndexedConv folder:
 .. code-block:: bash
 
     python setup.py install
+    
+Install from pip:
+
+.. code-block:: bash
+
+    pip install indexedconv
 
 
 Requirements

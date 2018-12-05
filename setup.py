@@ -17,7 +17,8 @@ setuptools.setup(
         "numpy",
         "tensorboardx",
         "matplotlib",
-        "h5py"
+        "h5py",
+        "sphinxcontrib-katex"
 
     ],
     packages=setuptools.find_packages(),

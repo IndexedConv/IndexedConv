@@ -215,7 +215,7 @@ def build_kernel(kernel_type, radius=1, dilation=1):
     return kernel
 
 
-def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, dilation=1):
+def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, dilation=1, retina=False):
     """Builds the matrix of indices from an index matrix based on a kernel.
 
     The matrix of indices contains for each pixel of interest its neighbours, including itself.
@@ -226,6 +226,7 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, d
         radius (int): The radius of the kernel.
         stride (int): The stride.
         dilation (int): The dilation. A dilation of 1 means no dilation.
+        retina (bool): Whether to build a retina like kernel. If True, dilation must be 1.
 
     Returns:
         A torch.Tensor - the matrix of the neighbours.
@@ -251,7 +252,8 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, d
         [  2,  3, -1,  5,  6, -1, -1],
         [  3,  4,  5,  6, -1, -1, -1]]
     """
-    logger = logging.getLogger(__name__ + '.neighbours_extraction')
+    if retina:
+        dilation = 1
     padding = radius * dilation * 2
     stride = stride
     bound = radius * dilation * 2 if radius > 0 else 1
@@ -261,6 +263,13 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, d
         bound = 1
         padding = 0
         center = 0
+    elif retina:
+        kernel = build_kernel(kernel_type, radius, radius).astype(bool)
+        center = int((np.count_nonzero(kernel) - 1) / 2)
+        for i in range(radius - 1):
+            sub_kernel = np.zeros_like(kernel).astype(bool)
+            sub_kernel[i:, i:] = build_kernel(kernel_type, radius - i, radius - i).astype(bool)
+            kernel = kernel and sub_kernel
     else:
         kernel = build_kernel(kernel_type, radius, dilation).astype(bool)
         center = int((np.count_nonzero(kernel) - 1) / 2)

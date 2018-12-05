@@ -16,10 +16,11 @@ requirements:
     - numpy
     - matplotlib
     - tensorboardx
+    - h5py
 
 test:
   imports:
-  -
+  - indexedconv
 
 about:
   home: https://github.com/IndexedConv/IndexedConv

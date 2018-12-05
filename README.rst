@@ -28,11 +28,17 @@ Install from IndexedConv folder:
 
     python setup.py install
     
-Install from pip:
+Install with pip:
 
 .. code-block:: bash
 
     pip install indexedconv
+
+Install with conda:
+
+.. code-block:: bash
+
+    conda install -c gammalearn indexedconv
 
 
 Requirements

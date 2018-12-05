@@ -38,7 +38,8 @@ Requirements
     "numpy",
     "tensorboardx",
     "matplotlib",
-    "h5py"
+    "h5py",
+    "sphinxcontrib-katex"
 
 
 Authors

@@ -15,6 +15,7 @@ Indexed Convolution
 
 .. autoclass:: IndexedConv
     :members:
+    :exclude-members: forward
 
 Indexed Pooling
 -------------------
@@ -24,9 +25,11 @@ Indexed Pooling
 
 .. autoclass:: IndexedMaxPool2d
     :members:
+    :exclude-members: forward
 
 :hidden:`IndexedAveragePool2d`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: IndexedAveragePool2d
     :members:
+    :exclude-members: forward

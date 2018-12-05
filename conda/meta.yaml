@@ -3,7 +3,7 @@ package:
   version: "0.1.0a"
 
 source:
-  git_rev: conda
+  git_rev: master
   git_url: https://github.com/IndexedConv/IndexedConv.git
 
 requirements:

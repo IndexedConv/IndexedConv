@@ -264,12 +264,12 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, d
         padding = 0
         center = 0
     elif retina:
-        kernel = build_kernel(kernel_type, radius, radius).astype(bool)
-        center = int((np.count_nonzero(kernel) - 1) / 2)
-        for i in range(radius - 1):
+        kernel = build_kernel(kernel_type, 1, radius).astype(bool)
+        for i in range(1, radius):
             sub_kernel = np.zeros_like(kernel).astype(bool)
-            sub_kernel[i:, i:] = build_kernel(kernel_type, radius - i, radius - i).astype(bool)
-            kernel = kernel and sub_kernel
+            sub_kernel[i:sub_kernel.shape[0]-i, i:sub_kernel.shape[1]-i] = build_kernel(kernel_type, 1, radius - i).astype(bool)
+            kernel = kernel + sub_kernel
+        center = int((np.count_nonzero(kernel) - 1) / 2)
     else:
         kernel = build_kernel(kernel_type, radius, dilation).astype(bool)
         center = int((np.count_nonzero(kernel) - 1) / 2)

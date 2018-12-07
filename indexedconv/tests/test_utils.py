@@ -58,6 +58,27 @@ class TestUtils(unittest.TestCase):
              [9,  10, 11, 13, 14, 15, -1, 16, 17, 18, -1, -1, -1, -1, -1, -1, -1, -1, -1]],
             dtype=torch.float)
         self.neighbours_indices_one = torch.tensor([[0, 2, 7, 9]], dtype=torch.float)
+        self.neighbours_indices_retina_hex_3 = torch.tensor(
+            [[-1, -1, -1, -1, -1, -1, -1, -1, -1,  0,  1,  2, -1,  3,  4,  7,  9, -1, 14],
+             [-1, -1, -1, -1, -1, -1, -1, -1,  0,  1,  2, -1, -1,  4,  5,  8, 10, 12, 15],
+             [-1, -1, -1, -1, -1, -1, -1,  0,  1,  2, -1, -1, -1,  5,  6,  9, 11, 13, -1],
+             [-1, -1, -1, -1, -1,  0, -1, -1, -1,  3,  4,  5,  6,  7,  8, -1, 13, -1, 17],
+             [-1, -1, -1, -1,  0,  1, -1, -1,  3,  4,  5,  6, -1,  8,  9, 12, 14, -1, 18],
+             [-1, -1, -1, -1,  1,  2, -1,  3,  4,  5,  6, -1, -1,  9, 10, 13, 15, 16, -1],
+             [-1, -1, -1, -1,  2, -1,  3,  4,  5,  6, -1, -1, -1, 10, 11, 14, -1, 17, -1],
+             [-1, -1, -1,  0, -1,  3, -1, -1, -1,  7,  8,  9, 10, -1, 12, -1, 16, -1, -1],
+             [-1, -1, -1,  1,  3,  4, -1, -1,  7,  8,  9, 10, 11, 12, 13, -1, 17, -1, -1],
+             [-1, -1,  0,  2,  4,  5, -1,  7,  8,  9, 10, 11, -1, 13, 14, 16, 18, -1, -1],
+             [-1, -1,  1, -1,  5,  6,  7,  8,  9, 10, 11, -1, -1, 14, 15, 17, -1, -1, -1],
+             [-1, -1,  2, -1,  6, -1,  8,  9, 10, 11, -1, -1, -1, 15, -1, 18, -1, -1, -1],
+             [-1,  1, -1,  4,  7,  8, -1, -1, -1, 12, 13, 14, 15, -1, 16, -1, -1, -1, -1],
+             [-1,  2,  3,  5,  8,  9, -1, -1, 12, 13, 14, 15, -1, 16, 17, -1, -1, -1, -1],
+             [ 0, -1,  4,  6,  9, 10, -1, 12, 13, 14, 15, -1, -1, 17, 18, -1, -1, -1, -1],
+             [ 1, -1,  5, -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, 18, -1, -1, -1, -1, -1],
+             [-1,  5,  7,  9, 12, 13, -1, -1, -1, 16, 17, 18, -1, -1, -1, -1, -1, -1, -1],
+             [ 3,  6,  8, 10, 13, 14, -1, -1, 16, 17, 18, -1, -1, -1, -1, -1, -1, -1, -1],
+             [ 4, -1,  9, 11, 14, 15, -1, 16, 17, 18, -1, -1, -1, -1, -1, -1, -1, -1, -1]],
+            dtype=torch.float).transpose(1, 0)
         self.square_image = torch.tensor([[[1, 0, 1, 0, 1],
                                            [0, 1, 0, 1, 0],
                                            [1, 0, 1, 0, 1],
@@ -129,6 +150,10 @@ class TestUtils(unittest.TestCase):
         torch.testing.assert_allclose(
             utils.neighbours_extraction(self.indexed_matrix, kernel_type='Square', radius=0, stride=2).type(torch.float),
             self.neighbours_indices_one)
+        torch.testing.assert_allclose(
+            utils.neighbours_extraction(self.indexed_matrix, kernel_type='Hex', radius=3, retina=True).type(torch.float),
+            self.neighbours_indices_retina_hex_3
+        )
 
     def test_square_to_hexagonal(self):
         torch.testing.assert_allclose(utils.square_to_hexagonal(self.square_image),

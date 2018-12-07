@@ -1,4 +1,8 @@
-import logging
+"""
+mnist.py
+========
+Contain the net for the mnist dataset
+"""
 
 import torch
 import torch.nn as nn
@@ -9,19 +13,17 @@ from indexedconv.engine import IndexedConv, IndexedMaxPool2d
 
 
 class GLNet2HexaConvForMnist(nn.Module):
-    """
-        Network with indexed convolutions and pooling (square kernels).
+    """Network with indexed convolutions and pooling (square kernels).
         2 CL (after each conv layer, pooling is executed)
         1 FC
+    Args:
+        index_matrix (`torch.Tensor`): The index matrix corresponding to the input images.
     """
 
     def __init__(self, index_matrix):
         super(GLNet2HexaConvForMnist, self).__init__()
-        self.logger = logging.getLogger(__name__ + '.GLNet2HexaConvForMnist')
 
         index_matrix1 = index_matrix
-        index_matrix1.unsqueeze_(0)
-        index_matrix1.unsqueeze_(0)
 
         # Layer 1 : IndexedConv
         indices_conv1 = utils.neighbours_extraction(index_matrix1,
@@ -44,16 +46,13 @@ class GLNet2HexaConvForMnist(nn.Module):
 
         # Compute the number of pixels (where idx is not -1 in the index matrix) of the last features
         n_pixels = int(torch.sum(torch.ge(index_matrix3[0, 0], 0)).data)
-        self.logger.debug('num pixels after last conv : {}'.format(n_pixels))
         self.lin1 = nn.Linear(n_pixels * 64, 1024)
 
         self.lin2 = nn.Linear(1024, 10)
 
     def forward(self, x):
         drop = nn.Dropout(p=0.5)
-        self.logger.info('in requires grad : {}'.format(x.requires_grad))
         out = F.relu(self.cv1(x))
-        self.logger.info('out requires grad : {}'.format(out.requires_grad))
         out = self.max_pool1(out)
         out = F.relu(self.cv2(out))
         out = self.max_pool2(out)

@@ -4,11 +4,7 @@ import sys
 import h5py
 import argparse
 
-import matplotlib as mpl
-mpl.use('Agg')  # Because of an issue in Qt5 causing seg fault
-import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
 import torch
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
@@ -17,7 +13,7 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 
 import indexedconv.utils as utils
-from indexedconv.nets.cifar import WideNetIndexConvIndexPool
+from indexedconv.nets.cifar import WideNetIndexConvIndexPoolRetina
 
 
 def train(model, device, train_loader, optimizer, epoch, writer=None):
@@ -48,7 +44,7 @@ def test(model, device, test_loader, epoch, val=True, writer=None):
             data, target = data.to(device), target.to(device)
             output = model(data)
             test_loss += F.nll_loss(output, target, size_average=False).item() # sum up batch loss
-            pred = output.max(1, keepdim=True)[1] # get the index of the max log-probability
+            pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
@@ -64,41 +60,21 @@ def test(model, device, test_loader, epoch, val=True, writer=None):
             test_loss, correct, len(test_loader.dataset), accuracy))
 
 
-def plot_image(img, img_hex, index_matrix, path, writer=None):
-
-    idx_mtx = index_matrix.view(index_matrix.shape[-2:])
-    pix_pos = utils.build_hexagonal_position(idx_mtx)
-
-    f, (ax0, ax1) = plt.subplots(1, 2)
-    ax0.imshow(img.transpose(0, 2).transpose(0, 1))
-    ax0.set_aspect('equal')
-    ax0.set_axis_off()
-    ax1.scatter(list(map(lambda x: x[1], pix_pos)), list(map(lambda x: x[0], pix_pos)), s=25,
-                c=img_hex.transpose(1, 0).numpy(), marker=(6, 0, 0))
-    ax1.set_aspect('equal')
-    ax1.set_axis_off()
-    plt.savefig(path)
-    if writer:
-        canvas = plt.get_current_fig_manager().canvas
-        canvas.draw()
-        pil_square_vs_hexa = Image.frombytes('RGB', canvas.get_width_height(), canvas.tostring_rgb())
-        writer.add_image('Square_vs_Hexagonal', transforms.ToTensor()(pil_square_vs_hexa))
-
-
 if __name__ == '__main__':
 
-    description = 'Demonstration of the use of IndexedConv package. A ResNet like network is trained ' \
+    description = 'Demonstration of the use of IndexedConv package in the case of unconventional convolution kernel ' \
+                  '(i.e. a retina like kernel). A ResNet like network implementing this kernel is trained ' \
                   'for a classification task on the CIFAR10 dataset.'
     # Parse script arguments
     print('parse arguments')
     parser = argparse.ArgumentParser(
         description=description
     )
-    parser.add_argument('main_directory', help='path to the main directory of the experiments')
-    parser.add_argument('data_directory', help='path to the data directory')
-    parser.add_argument('exp_name', help='name of the experiment')
-    parser.add_argument('--hexa', help='the pixel grid of the images. True for hexagonal, False for cartesian.',
-                        action='store_true', default=False)
+    parser.add_argument("main_directory", help="path to the main directory of the experiments")
+    parser.add_argument("data_directory", help="path to the data directory")
+    parser.add_argument("exp_name", help="name of the experiment")
+    parser.add_argument("--hexa", help="the pixel grid of the images. True for hexagonal, False for cartesian.",
+                        action="store_true", default=False)
     parser.add_argument('--batch', help='batch size', type=int, default=125)
     parser.add_argument('--epochs', help='number of epochs', type=int, default=300)
     parser.add_argument('--seeds', nargs='+', help='seeds to use, one training per seed', type=int,
@@ -138,7 +114,6 @@ if __name__ == '__main__':
     logger.addHandler(file_handler)
 
     # Experiment parameters
-
     logger.info('batch_size : {}'.format(batch_size))
     logger.info('max_epochs : {}'.format(max_epochs))
     logger.info('cuda available : {}'.format(torch.cuda.is_available()))
@@ -235,16 +210,9 @@ if __name__ == '__main__':
         # TensorboardX writer
         writer = SummaryWriter(main_directory + '/runs/' + experiment_name + '_' + str(seed))
 
-        # Plot a resampled image to check
-        if hexa:
-            img, _ = datasets.CIFAR10(data_directory, train=True, download=True, transform=transforms.ToTensor())[seed]
-            img_hex, _ = utils.HDF5Dataset(data_directory + '/cifar10.hdf5', transform=utils.NumpyToTensor())[seed]
-            plot_image(img, img_hex, index_matrix,
-                       experiment_directory + '/hex_cifar_' + str(seed) + '.png', writer=writer)
-
         # The model
         torch.manual_seed(seed)
-        model = WideNetIndexConvIndexPool(index_matrix, camera_layout).to(device)
+        model = WideNetIndexConvIndexPoolRetina(index_matrix, camera_layout).to(device)
 
         logger.info('Net parameters number : {}'.format(utils.compute_total_parameter_number(model)))
 

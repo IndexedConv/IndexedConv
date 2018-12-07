@@ -67,7 +67,7 @@ if __name__ == '__main__':
                         action='store_true', default=False)
     parser.add_argument('--batch', help='batch size', type=int, default=64)
     parser.add_argument('--epochs', help='number of epochs', type=int, default=10)
-    parser.add_argument('--seed', nargs='+', help='seed to use', type=int, default=0)
+    parser.add_argument('--seed', help='seed to use', type=int, default=0)
     parser.add_argument('--device', help='device to use, for example cpu or cuda:0', type=str, default='cuda:0')
 
     args = parser.parse_args()

@@ -187,7 +187,7 @@ class WideNetIndexConvIndexPool(nn.Module):
 
 
 class WideNetIndexConvIndexPoolRetina(nn.Module):
-    """ResNet like Network from HexaConv paper implemented with indexed convolutions and pooling.
+    """ResNet like Network from HexaConv paper implemented with indexed convolutions (retina like kernel) and pooling.
 
     Args:
         index_matrix (`torch.Tensor`): The index matrix corresponding to the input images.

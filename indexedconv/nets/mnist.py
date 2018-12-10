@@ -16,6 +16,7 @@ class GLNet2HexaConvForMnist(nn.Module):
     """Network with indexed convolutions and pooling (square kernels).
         2 CL (after each conv layer, pooling is executed)
         1 FC
+
     Args:
         index_matrix (`torch.Tensor`): The index matrix corresponding to the input images.
     """

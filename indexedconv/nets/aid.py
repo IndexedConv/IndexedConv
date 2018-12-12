@@ -61,7 +61,7 @@ class WideNetIndexConvIndexPool(nn.Module):
         self.bn1_4 = nn.BatchNorm1d(n1)
 
         indices_res_conv1 = utils.neighbours_extraction(index_matrix1,
-                                                        kernel_type='One', stride=2)
+                                                        kernel_type='Square', radius=0, stride=2)
         self.res_cv1to2 = engine.IndexedConv(n1, n2, indices_res_conv1)
 
         # Layer 2 : IndexedConv
@@ -82,7 +82,7 @@ class WideNetIndexConvIndexPool(nn.Module):
         self.bn2_4 = nn.BatchNorm1d(n2)
 
         indices_res_conv2 = utils.neighbours_extraction(index_matrix2,
-                                                        kernel_type='One', stride=2)
+                                                        kernel_type='Square', radius=0, stride=2)
         self.res_cv2to3 = engine.IndexedConv(n2, n3, indices_res_conv2)
 
         # Layer 3 : IndexedConv

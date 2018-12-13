@@ -80,6 +80,7 @@ if __name__ == '__main__':
     indexed_hexa_net_ram = []
     nn_hexa_net_ram = []
 
+    logger.info('torch version : {}'.format(torch.__version__))
     for batch_size in batch_sizes:
         image_size = (batch_size, c_in, size, size)
 
@@ -133,7 +134,7 @@ if __name__ == '__main__':
         logger.info('Compare indexed conv and nn.Conv2d on square images with WideNet')
         logger.info('batch size: {} iterations: {}'.format(batch_size, iterations))
 
-        indexed_net = WideNetIndexConvIndexPool(index_matrix_square, 'Square', 30).to(device)
+        indexed_net = WideNetIndexConvIndexPool(index_matrix_square.float(), 'Square', 30).to(device)
         nn_net = WideNet(30).to(device)
 
         ram_b = torch.cuda.memory_allocated() / 1024 / 1024
@@ -186,7 +187,7 @@ if __name__ == '__main__':
 
         logger.info('batch size: {} iterations: {}'.format(batch_size, len(hex_loader)))
 
-        index_matrix = torch.tensor(index_matrix).unsqueeze_(0).unsqueeze_(0)
+        index_matrix = index_matrix.unsqueeze_(0).unsqueeze_(0)
         indexed_net = WideNetIndexConvIndexPool(index_matrix, 'Hex', 30).to(device)
         nn_net = WideNetMasked(30).to(device)
 

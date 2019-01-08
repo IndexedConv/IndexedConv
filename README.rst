@@ -39,7 +39,7 @@ Install with pip:
 Install with conda:
 
 .. code-block:: bash
-
+    conda config --append channels conda-forge
     conda install -c gammalearn indexedconv
 
 

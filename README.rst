@@ -18,9 +18,8 @@ Here you will find the code for the indexed operations as well as applied exampl
 .. image:: https://readthedocs.org/projects/indexed-convolution/badge/?version=latest
     :target: https://indexed-convolution.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
-    
 .. image:: https://anaconda.org/gammalearn/indexedconv/badges/installer/conda.svg
-    :target:: https://anaconda.org/gammalearn/indexedconv
+    :target: https://anaconda.org/gammalearn/indexedconv
     
 Install
 =======

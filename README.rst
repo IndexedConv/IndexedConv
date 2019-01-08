@@ -37,6 +37,7 @@ Install with pip:
     pip install indexedconv
 
 Install with conda:
+
 first add conda-forge channel for tensorboardX if needed
 
 .. code-block:: bash

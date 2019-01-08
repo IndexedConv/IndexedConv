@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import h5py
+import argparse
 
 import matplotlib as mpl
 mpl.use('Agg')  # Because of an issue in Qt5 causing seg fault
@@ -85,11 +86,43 @@ def plot_image(img, img_hex, index_matrix, path, writer=None):
 
 
 if __name__ == '__main__':
-    main_directory = '.'
+
+    description = 'Demonstration of the use of IndexedConv package. A ResNet like network is trained ' \
+                  'for a classification task on the AID dataset.'
+    # Parse script arguments
+    print('parse arguments')
+    parser = argparse.ArgumentParser(
+        description=description
+    )
+    parser.add_argument("main_directory", help="path to the main directory of the experiments")
+    parser.add_argument("data_directory", help="path to the data directory")
+    parser.add_argument("exp_name", help="name of the experiment")
+    parser.add_argument("--hexa", help="the pixel grid of the images. True for hexagonal, False for cartesian.",
+                        action="store_true", default=False)
+    parser.add_argument('--batch', help='batch size', type=int, default=125)
+    parser.add_argument('--epochs', help='number of epochs', type=int, default=300)
+    parser.add_argument('--seeds', nargs='+', help='seeds to use, one training per seed', type=int,
+                        default=range(1, 11))
+    parser.add_argument('--device', help='device to use, for example cpu or cuda:0', type=str, default='cuda:0')
+    parser.add_argument('--size', help='size of the resized AID images', type=int, default=64)
+    parser.add_argument('--val_ratio', help='validating ratio', type=float, default=0.2)
+
+    args = parser.parse_args()
+
+    main_directory = args.main_directory
+    data_directory = args.data_directory
+    experiment_name = args.exp_name
+    hexa = args.hexa
+    batch_size = args.batch
+    max_epochs = args.epochs
+    seeds = args.seeds
+    device = torch.device(args.device)
+    resize_size = (args.size, args.size)
+    validating_ratio = args.val_ratio
+
     if not os.path.exists(main_directory):
         os.makedirs(main_directory)
-    experiment_name = 'IndexedConv_aid_indexed'
-    data_directory = main_directory + '/../ext_data'
+
     experiment_directory = main_directory + '/' + experiment_name
     if not os.path.exists(experiment_directory):
         os.makedirs(experiment_directory)
@@ -109,19 +142,8 @@ if __name__ == '__main__':
     logger.addHandler(file_handler)
 
     # Experiment parameters
-    batch_size = 100
-    test_batch_size = 1000
-    max_epochs = 300
-    resize_size = (64, 64)
-    validating_ratio = 0.2
     logger.info('batch_size : {}'.format(batch_size))
-    logger.info('test_batch_size : {}'.format(test_batch_size))
     logger.info('max_epochs : {}'.format(max_epochs))
-    seeds = range(1, 11)
-
-    hexa = False
-
-    device = torch.device("cuda:0")
     logger.info('cuda available : {}'.format(torch.cuda.is_available()))
 
     # Data
@@ -215,7 +237,7 @@ if __name__ == '__main__':
         train_set_sampler = sampler.SubsetRandomSampler(np.concatenate(train_indices))
         validating_set_sampler = sampler.SubsetRandomSampler(np.concatenate(val_indices))
         train_loader = DataLoader(dataset, batch_size=batch_size, sampler=train_set_sampler, num_workers=8)
-        val_loader = DataLoader(dataset, batch_size=test_batch_size, sampler=validating_set_sampler, num_workers=8)
+        val_loader = DataLoader(dataset, batch_size=batch_size, sampler=validating_set_sampler, num_workers=8)
 
         # TensorboardX writer
         writer = SummaryWriter(main_directory + '/runs/' + experiment_name + '_' + str(seed))

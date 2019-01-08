@@ -1,6 +1,6 @@
 import logging
-import os
 import sys
+import argparse
 
 import torch
 from torchvision import datasets, transforms
@@ -51,68 +51,79 @@ def test(model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
 
 
-main_directory = '.'
-experiment_name = 'Deep_mnist_hexa'
-experiment_directory = main_directory + '/' + experiment_name
-if not os.path.exists(experiment_directory):
-    os.makedirs(experiment_directory)
+if __name__ == '__main__':
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('[%(levelname)s] - %(message)s')
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
-formatter_file = logging.Formatter('%(asctime)s [%(levelname)s] - %(message)s')
-file_handler = logging.FileHandler('{}/{}/{}.log'.format(main_directory,
-                                                         experiment_name,
-                                                         experiment_name))
-file_handler.setFormatter(formatter_file)
-logger.addHandler(file_handler)
+    description = 'Demonstration of the use of IndexedConv package. A convnet is trained ' \
+                  'for a classification task on the MNIST dataset.'
+    # Parse script arguments
+    print('parse arguments')
+    parser = argparse.ArgumentParser(
+        description=description
+    )
+    parser.add_argument('main_directory', help='path to the main directory of the experiments')
+    parser.add_argument('data_directory', help='path to the data directory')
+    parser.add_argument('exp_name', help='name of the experiment')
+    parser.add_argument('--hexa', help='the pixel grid of the images. True for hexagonal, False for cartesian.',
+                        action='store_true', default=False)
+    parser.add_argument('--batch', help='batch size', type=int, default=64)
+    parser.add_argument('--epochs', help='number of epochs', type=int, default=10)
+    parser.add_argument('--seed', help='seed to use', type=int, default=0)
+    parser.add_argument('--device', help='device to use, for example cpu or cuda:0', type=str, default='cuda:0')
 
-batch_size = 64
-test_batch_size = 1000
+    args = parser.parse_args()
 
-train_set = datasets.MNIST(main_directory + '/../ext_data', train=True, download=True,
-                           transform=transforms.Compose([
-                               transforms.ToTensor(),
-                               transforms.Normalize((0.1307,), (0.3081,)),
-                               utils.SquareToHexa()
-                           ]))
-train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
-test_loader = torch.utils.data.DataLoader(datasets.MNIST(main_directory + '/../ext_data', train=False,
-                                                         transform=transforms.Compose([
-                                                             transforms.ToTensor(),
-                                                             transforms.Normalize((0.1307,), (0.3081,)),
-                                                             utils.SquareToHexa()
-                                                         ])),
-                                          batch_size=test_batch_size, shuffle=True)
+    main_directory = args.main_directory
+    data_directory = args.data_directory
+    experiment_name = args.exp_name
+    hexa = args.hexa
+    batch_size = args.batch
+    max_epochs = args.epochs
+    seed = args.seed
+    device = torch.device(args.device)
 
-device = torch.device("cuda")
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('[%(levelname)s] - %(message)s')
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+    formatter_file = logging.Formatter('%(asctime)s [%(levelname)s] - %(message)s')
+    file_handler = logging.FileHandler('{}/{}/{}.log'.format(main_directory,
+                                                             experiment_name,
+                                                             experiment_name))
+    file_handler.setFormatter(formatter_file)
+    logger.addHandler(file_handler)
 
-# Plot a resampled image to check
-img, _ = datasets.MNIST(main_directory + '/../ext_data', train=True, download=True,
-                        transform=transforms.Compose([
-                            transforms.ToTensor(),
-                            transforms.Normalize((0.1307,), (0.3081,))
-                        ]))[9]
-# print(img.shape)
-vec, index_matrix = utils.square_to_hexagonal(img)
+    train_set = datasets.MNIST(data_directory, train=True, download=True,
+                               transform=transforms.Compose([
+                                   transforms.ToTensor(),
+                                   transforms.Normalize((0.1307,), (0.3081,)),
+                                   utils.SquareToHexa()
+                               ]))
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(datasets.MNIST(data_directory, train=False,
+                                                             transform=transforms.Compose([
+                                                                 transforms.ToTensor(),
+                                                                 transforms.Normalize((0.1307,), (0.3081,)),
+                                                                 utils.SquareToHexa()
+                                                             ])),
+                                              batch_size=batch_size, shuffle=True)
 
-# hex_mat = torch.zeros(index_matrix.shape)
-# for i in range(index_matrix.shape[0]):
-#     for j in range(index_matrix.shape[1]):
-#         if not int(index_matrix[i, j]) == -1:
-#             hex_mat[i, j] = vec[int(index_matrix[i, j])]
-#
-# print(hex_mat)
+    # Compute index matrix
+    img, _ = datasets.MNIST(data_directory, train=True, download=True,
+                            transform=transforms.Compose([
+                                transforms.ToTensor(),
+                                transforms.Normalize((0.1307,), (0.3081,))
+                            ]))[0]
+    _, index_matrix = utils.square_to_hexagonal(img)
 
-# The Deep MNIST model
-model = GLNet2HexaConvForMnist(index_matrix).to(device)
+    # The Deep MNIST model
+    torch.manual_seed(seed)
+    model = GLNet2HexaConvForMnist(index_matrix).to(device)
 
-optimizer = optim.Adam(model.parameters())
+    optimizer = optim.Adam(model.parameters())
 
-# Train and test
-for epoch in range(1, 11):
-    train(model, device, train_loader, optimizer, epoch)
-    test(model, device, test_loader)
+    # Train and test
+    for epoch in range(1, max_epochs + 1):
+        train(model, device, train_loader, optimizer, epoch)
+        test(model, device, test_loader)

@@ -4,8 +4,6 @@
 utils
 =============================
 
-
-.. automodule:: indexedconv.utils
 .. currentmodule:: indexedconv.utils
 
 

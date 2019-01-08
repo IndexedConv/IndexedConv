@@ -46,6 +46,13 @@ Networks for CIFAR
     :members:
     :exclude-members: forward
 
+:hidden:`WideNetIndexConvIndexPoolRetina`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: indexedconv.nets.cifar.WideNetIndexConvIndexPoolRetina
+    :members:
+    :exclude-members: forward
+
 Network for MNIST
 ------------------
 

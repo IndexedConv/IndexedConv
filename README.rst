@@ -47,12 +47,23 @@ Requirements
 .. code-block:: bash
 
     "torch>=0.4",
+    "torchvision",
     "numpy",
     "tensorboardx",
     "matplotlib",
     "h5py",
     "sphinxcontrib-katex"
 
+
+Running an experiment
+=====================
+For example, to train the network with indexed convolution on the CIFAR10 dataset transformed to hexagonal:
+
+.. code-block:: bash
+
+    python examples/cifar_indexed.py main_folder data_folder experiment_name --hexa --batch 125 --epochs 300 --seeds 1 2 3 4 --device cpu
+
+In order to train on the AID dataset, it must be downloaded and can be found `here <https://captain-whu.github.io/AID/>`_.
 
 Authors
 =======

@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import argparse
 
 import numpy as np
 import torch
@@ -11,6 +12,7 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 
 import indexedconv.utils as utils
+from indexedconv.nets.cifar import WideNet
 
 
 def train(model, device, train_loader, optimizer, epoch, writer=None):
@@ -58,12 +60,35 @@ def test(model, device, test_loader, epoch, val=True, writer=None):
 
 
 if __name__ == '__main__':
-    main_directory = '.'
+
+    description = 'A ResNet like network is trained for a classification task on the CIFAR10 dataset.'
+    # Parse script arguments
+    print('parse arguments')
+    parser = argparse.ArgumentParser(
+        description=description
+    )
+    parser.add_argument("main_directory", help="path to the main directory of the experiments")
+    parser.add_argument("data_directory", help="path to the data directory")
+    parser.add_argument("exp_name", help="name of the experiment")
+    parser.add_argument('--batch', help='batch size', type=int, default=125)
+    parser.add_argument('--epochs', help='number of epochs', type=int, default=300)
+    parser.add_argument('--seeds', nargs='+', help='seeds to use, one training per seed', type=int,
+                        default=range(1, 11))
+    parser.add_argument('--device', help='device to use, for example cpu or cuda:0', type=str, default='cuda:0')
+
+    args = parser.parse_args()
+
+    main_directory = args.main_directory
+    data_directory = args.data_directory
+    experiment_name = args.exp_name
+    batch_size = args.batch
+    max_epochs = args.epochs
+    seeds = args.seeds
+    device = torch.device(args.device)
+
     if not os.path.exists(main_directory):
         os.makedirs(main_directory)
-        
-    experiment_name = 'IndexedConv_cifar_wideZ2net_nn'
-    data_directory = main_directory + '/../ext_data'
+
     experiment_directory = main_directory + '/' + experiment_name
     if not os.path.exists(experiment_directory):
         os.makedirs(experiment_directory)
@@ -83,15 +108,8 @@ if __name__ == '__main__':
     logger.addHandler(file_handler)
 
     # Experiment parameters
-    batch_size = 125
-    test_batch_size = 1000
-    max_epochs = 300
     logger.info('batch_size : {}'.format(batch_size))
-    logger.info('test_batch_size : {}'.format(test_batch_size))
     logger.info('max_epochs : {}'.format(max_epochs))
-    seeds = range(1, 11)
-
-    device = torch.device("cuda:0")
     logger.info('cuda available : {}'.format(torch.cuda.is_available()))
 
     # Data

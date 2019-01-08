@@ -4,8 +4,6 @@ aid.py
 Contain nets for the aid dataset
 """
 
-import logging
-
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
@@ -16,23 +14,22 @@ import indexedconv.engine as engine
 
 
 class WideNetIndexConvIndexPool(nn.Module):
-    """
-        ResNet like Network from HexaConv paper (Z²) implemented with indexed convolutions and pooling.
-    """
+    """ResNet like Network from HexaConv paper implemented with indexed convolutions and pooling.
 
+    Args:
+        index_matrix (`torch.Tensor`): The index matrix corresponding to the input images.
+        camera_layout (str): The grid shape of the images.
+        n_out (int): Number of features after last convolution.
+    """
     def __init__(self, index_matrix, camera_layout, n_out):
-        """
-
-        Parameters
-        ----------
-        net_parameters_dic (dict): a dictionary describing the parameters of the network
-        camera_parameters (dict): a dictionary containing the parameters of the camera used with this network
-        mode (str): explicit mode to use the network (different from the nn.Module.train() or evaluate()). For GANs
-        """
         super(WideNetIndexConvIndexPool, self).__init__()
-        self.logger = logging.getLogger(__name__ + '.WideNetIndexConvIndexPool')
 
         index_matrix0 = index_matrix
+
+        try:
+            camera_layout in ['Hex', 'Square']
+        except ValueError:
+            print('Unkown camera layout {}'.format(camera_layout))
 
         if camera_layout == 'Hex':
             n1 = 42
@@ -42,9 +39,6 @@ class WideNetIndexConvIndexPool(nn.Module):
             n1 = 37
             n2 = 74
             n3 = 146
-        else:
-            self.logger.error('Unkown camera layout {}'.format(camera_layout))
-            exit(1)
 
         # Layer 0
         indices_conv0 = utils.neighbours_extraction(index_matrix0,
@@ -67,7 +61,7 @@ class WideNetIndexConvIndexPool(nn.Module):
         self.bn1_4 = nn.BatchNorm1d(n1)
 
         indices_res_conv1 = utils.neighbours_extraction(index_matrix1,
-                                                        kernel_type='One', stride=2)
+                                                        kernel_type='Square', radius=0, stride=2)
         self.res_cv1to2 = engine.IndexedConv(n1, n2, indices_res_conv1)
 
         # Layer 2 : IndexedConv
@@ -88,7 +82,7 @@ class WideNetIndexConvIndexPool(nn.Module):
         self.bn2_4 = nn.BatchNorm1d(n2)
 
         indices_res_conv2 = utils.neighbours_extraction(index_matrix2,
-                                                        kernel_type='One', stride=2)
+                                                        kernel_type='Square', radius=0, stride=2)
         self.res_cv2to3 = engine.IndexedConv(n2, n3, indices_res_conv2)
 
         # Layer 3 : IndexedConv
@@ -164,21 +158,14 @@ class WideNetIndexConvIndexPool(nn.Module):
 
 
 class WideNet(nn.Module):
-    """
-        ResNet like Network from HexaConv paper (Z²)
+    """ResNet like Network from HexaConv paper (Z²).
+
+    Args:
+        n_out (int): Number of features after last convolution.
     """
 
     def __init__(self, n_out):
-        """
-
-        Parameters
-        ----------
-        net_parameters_dic (dict): a dictionary describing the parameters of the network
-        camera_parameters (dict): a dictionary containing the parameters of the camera used with this network
-        mode (str): explicit mode to use the network (different from the nn.Module.train() or evaluate()). For GANs
-        """
         super(WideNet, self).__init__()
-        self.logger = logging.getLogger(__name__ + '.WideNet')
 
         n1 = 37
         n2 = 74
@@ -275,21 +262,14 @@ class WideNet(nn.Module):
 
 
 class WideNetMasked(nn.Module):
-    """
-        ResNet like Network from HexaConv paper (Z²)
+    """ResNet like Network from HexaConv paper implementing masked convolutions.
+
+    Args:
+        n_out (int): Number of features after last convolution.
     """
 
     def __init__(self, n_out):
-        """
-
-        Parameters
-        ----------
-        net_parameters_dic (dict): a dictionary describing the parameters of the network
-        camera_parameters (dict): a dictionary containing the parameters of the camera used with this network
-        mode (str): explicit mode to use the network (different from the nn.Module.train() or evaluate()). For GANs
-        """
         super(WideNetMasked, self).__init__()
-        self.logger = logging.getLogger(__name__ + '.WideNet')
 
         n1 = 42
         n2 = 83

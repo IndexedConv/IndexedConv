@@ -3,9 +3,11 @@ import setuptools
 with open("README.rst", "r") as fh:
     long_description = fh.read()
 
+exec(open('indexedconv/version.py').read())
+
 setuptools.setup(
     name="IndexedConv",
-    version="0.1.0a",
+    version=__version__,
     author="M. Jacquemont, T. Vuillaume, L. Antiga",
     author_email="jacquemont@lapp.in2p3.fr",
     description="An implementation of indexed convolution and pooling",
@@ -14,6 +16,7 @@ setuptools.setup(
     url="https://github.com/IndexedConv/IndexedConv",
     install_requires=[
         "torch>=0.4",
+        "torchvision",
         "numpy",
         "tensorboardx",
         "matplotlib",

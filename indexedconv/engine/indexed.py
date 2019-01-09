@@ -140,6 +140,10 @@ class IndexedConv(nn.Module):
         self.out_channels = out_channels
         self.kernel_size = kernel_size
         self.indices, self.mask = utils.prepare_mask(indices)
+        self.output_width = self.indices.shape[1]
+
+        self.register_buffer('indices_', self.indices)
+        self.register_buffer('mask_', self.mask)
 
         self.weight = Parameter(torch.Tensor(
             out_channels, in_channels // groups, kernel_size))
@@ -160,14 +164,10 @@ class IndexedConv(nn.Module):
 
     def forward(self, input):
         nbatch = input.shape[0]
-        output_width = self.indices.shape[1]
 
-        self.indices = self.indices.to(input.device)
-        self.mask = self.mask.to(input.device)
-
-        col = input[..., self.indices] * self.mask
+        col = input[..., self.indices_] * self.mask_
         # col is of shape (N, C_in, K, Wo)
-        col = col.view(nbatch, -1, output_width)
+        col = col.view(nbatch, -1, self.output_width)
         weight_col = self.weight.view(self.out_channels, -1)
         out = torch.matmul(weight_col, col)
         if self.bias is not None:
@@ -177,7 +177,7 @@ class IndexedConv(nn.Module):
         return out
 
     def __repr__(self):
-        s = ('{name} ({in_channels}, {out_channels}, kernel_size={kernel_size}')
+        s = '{name} ({in_channels}, {out_channels}, kernel_size={kernel_size}'
         if self.bias is None:
             s += ', bias=False'
         s += ')'

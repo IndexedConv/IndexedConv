@@ -133,7 +133,8 @@ class IndexedConv(nn.Module):
         super(IndexedConv, self).__init__()
         self.logger = logging.getLogger(__name__ + '.IndexedConv')
 
-        self.logger.info('!!! bmm + no_grad version !!!')
+        print('!!! bmm !!!')
+
         groups = 1
 
         kernel_size = indices.shape[0]
@@ -166,10 +167,9 @@ class IndexedConv(nn.Module):
 
     def forward(self, input):
         nbatch = input.shape[0]
-        with torch.no_grad():
-            col = input[..., self.indices_] * self.mask_
-            # col is of shape (N, C_in, K, Wo)
-            col = col.view(nbatch, -1, self.output_width)
+        col = input[..., self.indices_] * self.mask_
+        # col is of shape (N, C_in, K, Wo)
+        col = col.view(nbatch, -1, self.output_width)
         out = torch.bmm(self.weight.view(self.out_channels, -1).expand(nbatch, -1, -1), col)
         if self.bias is not None:
             out = out + self.bias.unsqueeze(1)

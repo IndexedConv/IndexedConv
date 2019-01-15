@@ -237,7 +237,6 @@ if __name__ == '__main__':
         ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
         logger.info('Memory allocated : {} in MB'.format(ram_f))
         nn_hexa_net_ram.append(ram_f - ram_b)
-        logger.info('Time for indexed widenet {}'.format(t))
         logger.info('Time for masked nn widenet {}'.format(t))
         del nn_net
         del out

@@ -170,9 +170,9 @@ class IndexedConv(nn.Module):
         col = input[..., self.indices_] * self.mask_
         # col is of shape (N, C_in, K, Wo)
         col = col.view(nbatch, -1, self.output_width)
-        weight_col = self.weight.view(self.out_channels, -1)
-        out = torch.matmul(weight_col, col)
-        # out = torch.bmm(self.weight.view(self.out_channels, -1).expand(nbatch, -1, -1), col)
+        # weight_col = self.weight.view(self.out_channels, -1)
+        # out = torch.matmul(weight_col, col)
+        out = torch.bmm(self.weight.view(self.out_channels, -1).expand(nbatch, -1, -1), col)
         if self.bias is not None:
             out = out + self.bias.unsqueeze(1)
         out = out.view(nbatch, self.out_channels, -1)

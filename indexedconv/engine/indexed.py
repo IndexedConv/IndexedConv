@@ -131,8 +131,6 @@ class IndexedConv(nn.Module):
         super(IndexedConv, self).__init__()
         self.logger = logging.getLogger(__name__ + '.IndexedConv')
 
-        print('!!! bmm !!!')
-
         groups = 1
 
         kernel_size = indices.shape[0]

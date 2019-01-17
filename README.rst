@@ -82,7 +82,13 @@ The development of the indexed convolution is born from a collaboration between 
 - Mikael Jacquemont, LAPP (CNRS), LISTIC (USMB)
 - Thomas Vuillaume, LAPP (CNRS)
 
+References
+==========
+If you want to use IndexedConv, please cite:
 
+.. image:: https://zenodo.org/badge/150430897.svg
+   :target: https://zenodo.org/badge/latestdoi/150430897
+   
 Contributing
 ============
 

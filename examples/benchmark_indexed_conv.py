@@ -101,7 +101,8 @@ if __name__ == '__main__':
 
         cv_nn.to(device)
         cv_square.to(device)
-        ram_b = torch.cuda.memory_allocated() / 1024 / 1024
+        ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_b))
         start_square = time.time()
         for _ in range(iterations):
             cv_square.zero_grad()
@@ -110,13 +111,17 @@ if __name__ == '__main__':
             loss_square.backward()
         t = (time.time() - start_square) / iterations
         indexed_conv.append(t)
-        indexed_conv_ram.append(torch.cuda.memory_allocated() / 1024 / 1024 - ram_b)
+        ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_f))
+        indexed_conv_ram.append(ram_f - ram_b)
         logger.info('Time for 1 indexed conv + backward : {}'.format(t))
         del cv_square
         del convoluted_square
+        del loss_square
         torch.cuda.empty_cache()
 
-        ram_b = torch.cuda.memory_allocated() / 1024 / 1024
+        ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_b))
         start_nn = time.time()
         for _ in range(iterations):
             cv_nn.zero_grad()
@@ -125,10 +130,13 @@ if __name__ == '__main__':
             loss_nn.backward()
         t = (time.time() - start_nn) / iterations
         nn_conv.append(t)
-        nn_conv_ram.append(torch.cuda.memory_allocated() / 1024 / 1024 - ram_b)
+        ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_f))
+        nn_conv_ram.append(ram_f - ram_b)
         logger.info('Time for 1 nn conv + backward : {}'.format(t))
         del cv_nn
         del convoluted_nn
+        del loss_nn
         torch.cuda.empty_cache()
 
         logger.info('Compare indexed conv and nn.Conv2d on square images with WideNet')
@@ -137,7 +145,8 @@ if __name__ == '__main__':
         indexed_net = WideNetIndexConvIndexPool(index_matrix_square.float(), 'Square', 30).to(device)
         nn_net = WideNet(30).to(device)
 
-        ram_b = torch.cuda.memory_allocated() / 1024 / 1024
+        ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_b))
         start_indexed = time.time()
         for _ in range(iterations):
             out = indexed_net(dummy_data.view(batch_size, c_in, -1))
@@ -145,13 +154,17 @@ if __name__ == '__main__':
             loss.backward()
         t = (time.time() - start_indexed) / iterations
         indexed_square_net.append(t)
-        indexed_square_net_ram.append(torch.cuda.memory_allocated() / 1024 / 1024 - ram_b)
+        ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_f))
+        indexed_square_net_ram.append(ram_f - ram_b)
         logger.info('Time for indexed widenet {}'.format(t))
         del indexed_net
         del out
+        del loss
         torch.cuda.empty_cache()
 
-        ram_b = torch.cuda.memory_allocated() / 1024 / 1024
+        ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_b))
         start_nn = time.time()
         for _ in range(iterations):
             out = nn_net(dummy_data)
@@ -159,10 +172,13 @@ if __name__ == '__main__':
             loss.backward()
         t = (time.time() - start_nn) / iterations
         nn_square_net.append(t)
-        nn_square_net_ram.append(torch.cuda.memory_allocated() / 1024 / 1024 - ram_b)
+        ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_f))
+        nn_square_net_ram.append(ram_f - ram_b)
         logger.info('Time for nn widenet {}'.format(t))
         del nn_net
         del out
+        del loss
         torch.cuda.empty_cache()
 
         logger.info('Compare indexed conv and nn.Conv2d on hexagonal images with WideNet')
@@ -191,7 +207,8 @@ if __name__ == '__main__':
         indexed_net = WideNetIndexConvIndexPool(index_matrix, 'Hex', 30).to(device)
         nn_net = WideNetMasked(30).to(device)
 
-        ram_b = torch.cuda.memory_allocated() / 1024 / 1024
+        ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_b))
         start_indexed = time.time()
         for d in hex_loader:
             out = indexed_net(d[0].to(device))
@@ -199,13 +216,17 @@ if __name__ == '__main__':
             loss.backward()
         t = (time.time() - start_indexed) / len(hex_loader)
         indexed_hexa_net.append(t)
-        indexed_hexa_net_ram.append(torch.cuda.memory_allocated() / 1024 / 1024 - ram_b)
+        ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_f))
+        indexed_hexa_net_ram.append(ram_f - ram_b)
         logger.info('Time for indexed widenet {}'.format(t))
         del indexed_net
         del out
+        del loss
         torch.cuda.empty_cache()
 
-        ram_b = torch.cuda.memory_allocated() / 1024 / 1024
+        ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_b))
         start_nn = time.time()
         for d in sh_loader:
             out = nn_net(d[0].to(device))
@@ -213,10 +234,13 @@ if __name__ == '__main__':
             loss.backward()
         t = (time.time() - start_nn) / len(sh_loader)
         nn_hexa_net.append(t)
-        nn_hexa_net_ram.append(torch.cuda.memory_allocated() / 1024 / 1024 - ram_b)
+        ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+        logger.info('Memory allocated : {} in MB'.format(ram_f))
+        nn_hexa_net_ram.append(ram_f - ram_b)
         logger.info('Time for masked nn widenet {}'.format(t))
         del nn_net
         del out
+        del loss
         torch.cuda.empty_cache()
 
     dataf = pd.DataFrame()

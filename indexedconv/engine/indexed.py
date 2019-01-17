@@ -31,14 +31,13 @@ class IndexedMaxPool2d(nn.Module):
         self.logger = logging.getLogger(__name__ + '.IndexedMaxPool2d')
         self.indices = indices
         self.indices, self.mask = utils.prepare_mask(self.indices)
+        self.register_buffer('indices_', self.indices)
+        self.register_buffer('mask_', self.mask)
 
     def forward(self, input_images):
         self.logger.debug('Max pool image')
 
-        self.indices = self.indices.to(input_images.device)
-        self.mask = self.mask.to(input_images.device)
-
-        col = input_images[..., self.indices] * self.mask
+        col = input_images[..., self.indices_] * self.mask_
 
         out, _ = torch.max(col, 2)
 
@@ -64,14 +63,13 @@ class IndexedAveragePool2d(nn.Module):
         self.logger = logging.getLogger(__name__ + '.IndexedAveragePool2d')
         self.indices = indices
         self.indices, self.mask = utils.prepare_mask(self.indices)
+        self.register_buffer('indices_', self.indices)
+        self.register_buffer('mask_', self.mask)
 
     def forward(self, input_images):
         self.logger.debug('Average pool image')
 
-        self.indices = self.indices.to(input_images.device)
-        self.mask = self.mask.to(input_images.device)
-
-        col = input_images[..., self.indices] * self.mask
+        col = input_images[..., self.indices_] * self.mask_
 
         out = torch.mean(col, 2)
 
@@ -132,6 +130,7 @@ class IndexedConv(nn.Module):
     def __init__(self, in_channels, out_channels, indices, bias=True):
         super(IndexedConv, self).__init__()
         self.logger = logging.getLogger(__name__ + '.IndexedConv')
+
         groups = 1
 
         kernel_size = indices.shape[0]
@@ -140,6 +139,10 @@ class IndexedConv(nn.Module):
         self.out_channels = out_channels
         self.kernel_size = kernel_size
         self.indices, self.mask = utils.prepare_mask(indices)
+        self.output_width = self.indices.shape[1]
+
+        self.register_buffer('indices_', self.indices)
+        self.register_buffer('mask_', self.mask)
 
         self.weight = Parameter(torch.Tensor(
             out_channels, in_channels // groups, kernel_size))
@@ -160,24 +163,17 @@ class IndexedConv(nn.Module):
 
     def forward(self, input):
         nbatch = input.shape[0]
-        output_width = self.indices.shape[1]
-
-        self.indices = self.indices.to(input.device)
-        self.mask = self.mask.to(input.device)
-
-        col = input[..., self.indices] * self.mask
+        col = input[..., self.indices_] * self.mask_
         # col is of shape (N, C_in, K, Wo)
-        col = col.view(nbatch, -1, output_width)
-        weight_col = self.weight.view(self.out_channels, -1)
-        out = torch.matmul(weight_col, col)
+        col = col.view(nbatch, -1, self.output_width)
+        out = torch.bmm(self.weight.view(self.out_channels, -1).expand(nbatch, -1, -1), col)
         if self.bias is not None:
             out = out + self.bias.unsqueeze(1)
-        out = out.view(nbatch, self.out_channels, -1)
 
         return out
 
     def __repr__(self):
-        s = ('{name} ({in_channels}, {out_channels}, kernel_size={kernel_size}')
+        s = '{name} ({in_channels}, {out_channels}, kernel_size={kernel_size}'
         if self.bias is None:
             s += ', bias=False'
         s += ')'

@@ -12,6 +12,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset
 import h5py
+from scipy.spatial import Delaunay
 
 
 def get_gpu_usage_map(device_id):
@@ -294,6 +295,95 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, d
     neighbours = torch.from_numpy(neighbours).long()
 
     return neighbours
+
+
+def clean_sims(points, sims, neighbors, thresh=350):
+
+    keep_sims = np.ones(sims.shape[0], dtype=bool)
+    for i, sim in enumerate(sims):
+        for l in range(3):
+            edge_idx0 = sim[l]
+            edge_idx1 = sim[(l + 1) % 3]
+            p0 = points[edge_idx0]
+            p1 = points[edge_idx1]
+            if np.linalg.norm(p1 - p0) > thresh:
+                keep_sims[i] = False
+                break
+    sims_map = {}
+    j = 0
+    for i in range(sims.shape[0]):
+        if keep_sims[i]:
+            sims_map[i] = j
+            j += 1
+    for neighb in neighbors:
+        for i, n in enumerate(neighb):
+            if n in sims_map.keys():
+                neighb[i] = sims_map[n]
+            else:
+                neighb[i] = -1
+    sims = sims[keep_sims]
+    neighbors = neighbors[keep_sims]
+
+    return np.array(sims), np.array(neighbors)
+
+
+def delaunay_simplices_neighbors_extraction(positions, max_distance):
+
+    tri = Delaunay(positions)
+    simplices, neighbors = clean_sims(tri.points, tri.simplices, tri.neighbors, thresh=max_distance)
+    used_sims = np.zeros(simplices.shape[0], dtype=bool)
+    neighborhood = []
+    barycentres = []
+    for i, sim in enumerate(simplices):
+        if not used_sims[i]:
+            found_neighbor = False
+            for sim_neighbor in neighbors[i]:
+                if not used_sims[sim_neighbor] and not sim_neighbor == -1:
+                    neighb = np.concatenate([sim, simplices[sim_neighbor]])
+                    used_sims[sim_neighbor] = True
+                    found_neighbor = True
+                    break
+            if not found_neighbor:
+                neighb = sim
+            used_sims[i] = True
+            neighb = list(set(list(neighb)))
+#             neighb.sort()
+            neighborhood.append(neighb)
+            pos = positions[neighb]
+            length = pos.shape[0]
+            sum_x = np.sum(pos[:, 0])
+            sum_y = np.sum(pos[:, 1])
+            barycentres.append([sum_x / length, sum_y / length])
+        np_neighborhood = np.full([len(neighborhood), len(max(neighborhood, key=lambda x: len(x)))], -1)
+        for i, j in enumerate(neighborhood):
+            np_neighborhood[i][0:len(j)] = j
+
+        return np_neighborhood, np.array(barycentres)
+
+
+def clean_vertices(points, neighbors, thresh=350):
+    for i, neighb in enumerate(neighbors):
+        for j, n in enumerate(neighb):
+            p0 = points[i]
+            p1 = points[n]
+            if np.linalg.norm(p1 - p0) >  thresh:
+                neighb[j] = -1
+    return neighbors
+
+
+def delaunay_vertices_neighbors_extraction(positions, max_distance):
+    tri = Delaunay(positions)
+    idptr, vertices = tri.vertex_neighbor_vertices
+    neighbors = []
+    for i in range(idptr.shape[0]-1):
+        start_ptr = idptr[i]
+        end_ptr = idptr[i+1]
+        neighbors.append(list(vertices[start_ptr:end_ptr]))
+    neighbors = clean_vertices(tri.points, neighbors, max_distance)
+    np_neighbors = np.full([len(neighbors),len(max(neighbors,key = lambda x: len(x)))], -1)
+    for i,j in enumerate(neighbors):
+        np_neighbors[i][0:len(j)] = j
+    return np_neighbors
 
 
 def prepare_mask(indices):

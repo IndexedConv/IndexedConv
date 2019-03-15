@@ -336,16 +336,14 @@ def delaunay_simplices_neighbors_extraction(positions, max_distance):
     barycentres = []
     for i, sim in enumerate(simplices):
         if not used_sims[i]:
-            found_neighbor = False
+            neighb = [sim]
             for sim_neighbor in neighbors[i]:
                 if not used_sims[sim_neighbor] and not sim_neighbor == -1:
-                    neighb = np.concatenate([sim, simplices[sim_neighbor]])
+                    neighb.append(simplices[sim_neighbor])
                     used_sims[sim_neighbor] = True
-                    found_neighbor = True
-                    break
-            if not found_neighbor:
-                neighb = sim
+                    # break
             used_sims[i] = True
+            neighb = np.concatenate(neighb)
             neighb = list(set(list(neighb)))
 #             neighb.sort()
             neighborhood.append(neighb)
@@ -358,7 +356,7 @@ def delaunay_simplices_neighbors_extraction(positions, max_distance):
         for i, j in enumerate(neighborhood):
             np_neighborhood[i][0:len(j)] = j
 
-        return np_neighborhood, np.array(barycentres)
+    return np_neighborhood.T, np.array(barycentres)
 
 
 def clean_vertices(points, neighbors, thresh=350):
@@ -383,7 +381,7 @@ def delaunay_vertices_neighbors_extraction(positions, max_distance):
     np_neighbors = np.full([len(neighbors),len(max(neighbors,key = lambda x: len(x)))], -1)
     for i,j in enumerate(neighbors):
         np_neighbors[i][0:len(j)] = j
-    return np_neighbors
+    return np_neighbors.T
 
 
 def prepare_mask(indices):

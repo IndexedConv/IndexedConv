@@ -1,6 +1,6 @@
 package:
   name: indexedconv
-  version: "1.0"
+  version: "1.2"
 
 source:
   git_rev: master

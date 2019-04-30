@@ -88,7 +88,11 @@ If you want to use IndexedConv, please cite:
 
 .. image:: https://zenodo.org/badge/150430897.svg
    :target: https://zenodo.org/badge/latestdoi/150430897
-   
+
+Publication
+-----------
+Jacquemont, M.; Antiga, L.; Vuillaume, T.; Silvestri, G.; Benoit, A.; Lambert, P. and Maurin, G. (2019). **Indexed Operations for Non-rectangular Lattices Applied to Convolutional Neural Networks**. In Proceedings of the 14th International Joint Conference on Computer Vision, Imaging and Computer Graphics Theory and Applications - Volume 5: VISAPP, ISBN 978-989-758-354-4, pages 362-371. DOI: 10.5220/0007364303620371
+
 Contributing
 ============
 

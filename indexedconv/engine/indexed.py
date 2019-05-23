@@ -4,7 +4,6 @@ indexed.py
 Contain the core functions for the indexed operations
 """
 
-import logging
 import math
 
 import torch
@@ -28,19 +27,14 @@ class IndexedMaxPool2d(nn.Module):
     """
     def __init__(self, indices):
         super(IndexedMaxPool2d, self).__init__()
-        self.logger = logging.getLogger(__name__ + '.IndexedMaxPool2d')
         self.indices = indices
         self.indices, self.mask = utils.prepare_mask(self.indices)
         self.register_buffer('indices_', self.indices)
         self.register_buffer('mask_', self.mask)
 
     def forward(self, input_images):
-        self.logger.debug('Max pool image')
-
         col = input_images[..., self.indices_] * self.mask_
-
         out, _ = torch.max(col, 2)
-
         return out
 
 
@@ -60,19 +54,14 @@ class IndexedAveragePool2d(nn.Module):
     """
     def __init__(self, indices):
         super(IndexedAveragePool2d, self).__init__()
-        self.logger = logging.getLogger(__name__ + '.IndexedAveragePool2d')
         self.indices = indices
         self.indices, self.mask = utils.prepare_mask(self.indices)
         self.register_buffer('indices_', self.indices)
         self.register_buffer('mask_', self.mask)
 
     def forward(self, input_images):
-        self.logger.debug('Average pool image')
-
         col = input_images[..., self.indices_] * self.mask_
-
         out = torch.mean(col, 2)
-
         return out
 
 
@@ -129,10 +118,7 @@ class IndexedConv(nn.Module):
 
     def __init__(self, in_channels, out_channels, indices, bias=True):
         super(IndexedConv, self).__init__()
-        self.logger = logging.getLogger(__name__ + '.IndexedConv')
-
         groups = 1
-
         kernel_size = indices.shape[0]
 
         self.in_channels = in_channels

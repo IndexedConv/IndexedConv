@@ -1,14 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
 import torch
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
-import torch.nn.functional as F
-import torch.optim as optim
 
 import indexedconv.utils as utils
-from indexedconv.engine import IndexedConv, IndexedMaxPool2d
+from indexedconv.engine import IndexedConv, IndexedAveragePool2d
 
 if __name__ == '__main__':
 
@@ -23,7 +18,7 @@ if __name__ == '__main__':
 
     # Pooling
     p_indices, pooled_positions = utils.delaunay_simplices_neighbors_extraction(positions, dist_max)
-    pool = IndexedMaxPool2d(torch.tensor(p_indices))
+    pool = IndexedAveragePool2d(torch.tensor(p_indices))
 
     # Convolution 2
     indices_2 = torch.tensor(utils.delaunay_vertices_neighbors_extraction(pooled_positions, dist_max))
@@ -31,7 +26,7 @@ if __name__ == '__main__':
 
     # Pooling 2
     p_indices_2, pooled_positions_2 = utils.delaunay_simplices_neighbors_extraction(pooled_positions, dist_max)
-    pool_2 = IndexedMaxPool2d(torch.tensor(p_indices_2))
+    pool_2 = IndexedAveragePool2d(torch.tensor(p_indices_2))
 
     out_cv1 = conv(data)
     out_pool1 = pool(out_cv1)

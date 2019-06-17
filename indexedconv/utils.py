@@ -9,7 +9,6 @@ import subprocess
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 from torch.utils.data import Dataset
 import h5py
 
@@ -33,16 +32,14 @@ def get_gpu_usage_map(device_id):
             '--format=csv,nounits,noheader'
         ], encoding='utf-8')
     # Convert lines into a dictionary
-    # gpu_usage = [[int(y) for y in x.split(',')] for x in result.strip().split('\n')]
     gpu_usage = [int(y) for y in result.split(',')]
-    # gpu_usage_map = {}
     gpu_usage_map = {'memory_used': gpu_usage[0], 'total_memory': gpu_usage[1], 'utilization': gpu_usage[2]}
-    # for i, gpu in enumerate(gpu_usage):
-    #     gpu_usage_map[i] = {'memory_used': gpu[0], 'total_memory': gpu[1], 'utilization': gpu[2]}
+
     return gpu_usage_map
 
 
 def compute_total_parameter_number(net):
+    # TODO add tf support
     r"""Computes the total number of parameters of a network.
 
     Args:
@@ -52,8 +49,9 @@ def compute_total_parameter_number(net):
         A int
     """
     num_parameters = 0
-    for name, param in net.named_parameters():
-        num_parameters += param.clone().cpu().data.view(-1).size(0)
+    if isinstance(net, torch.nn.Module):
+        for name, param in net.named_parameters():
+            num_parameters += param.clone().cpu().data.view(-1).shape[0]
 
     return num_parameters
 
@@ -86,15 +84,12 @@ def create_index_matrix(nbRow, nbCol, injTable):
         [2,  3, 4],
         [-1, 5, 6]]
     """
-    logger = logging.getLogger(__name__ + '.create_index_matrix')
-    index_matrix = torch.full((int(nbRow), int(nbCol)), -1)
+    index_matrix = np.full((int(nbRow), int(nbCol)), -1)
     for i, idx in enumerate(injTable):
         idx_row = int(idx // nbRow)
         idx_col = int(idx % nbCol)
-        index_matrix[idx_row,idx_col] = i
+        index_matrix[idx_row, idx_col] = i
 
-    index_matrix.unsqueeze_(0)
-    index_matrix.unsqueeze_(0)
     return index_matrix
 
 
@@ -102,26 +97,26 @@ def img2mat(input_images, index_matrix):
     """Transforms a batch of features of vector images in a batch of features of matrix images.
 
      Args:
-         input_images (torch.Tensor): The images with shape (batch, features, image).
-         index_matrix (torch.Tensor): The index matrix containing the index of the pixels of the images.
+         input_images (numpy.Array): The images with shape (batch, features, image).
+         index_matrix (numpy.Array): The index matrix containing the index of the pixels of the images.
             represented in a matrix
 
      Returns:
-         A torch.Tensor
+         A numpy.Array
      """
     logger = logging.getLogger(__name__ + '.img2mat')
     # First create a tensor of shape : batch, features, index_matrix.size filled with zeros
-    image_matrix = input_images.new_zeros((input_images.size(0),
-                                           input_images.size(1),
-                                           index_matrix.size(-2),
-                                           index_matrix.size(-1)), dtype=torch.int)
+    image_matrix = np.zeros((input_images.shape[0],
+                             input_images.shape[1],
+                             index_matrix.shape[0],
+                             index_matrix.shape[1]), dtype=np.int)
 
-    logger.debug('image matrix shape : {}'.format(image_matrix.size()))
+    logger.debug('image matrix shape : {}'.format(image_matrix.shape))
 
-    for i in range(index_matrix.size(-2)):  # iterate over the rows of index matrix
-        for j in range(index_matrix.size(-1)):  # iterate over the cols of index matrix
-            if index_matrix.data[0, 0, i, j] != -1:
-                image_matrix[:, :, i, j] = input_images[:, :, int(index_matrix[0, 0, i, j])]
+    for i in range(index_matrix.shape[0]):  # iterate over the rows of index matrix
+        for j in range(index_matrix.shape[1]):  # iterate over the cols of index matrix
+            if index_matrix[i, j] != -1:
+                image_matrix[:, :, i, j] = input_images[:, :, int(index_matrix[i, j])]
 
     return image_matrix
 
@@ -131,24 +126,24 @@ def mat2img(input_matrix, index_matrix):
     Transforms a batch of features of matrix images in a batch of features of vector images.
 
     Args:
-        input_matrix (torch.Tensor): The images with shape (batch, features, matrix.size).
-        index_matrix (torch.Tensor): The index matrix for the images, shape(1, 1, matrix.size).
+        input_matrix (numpy.Array): The images with shape (batch, features, matrix.size).
+        index_matrix (numpy.array): The index matrix for the images.
 
     """
     logger = logging.getLogger(__name__ + '.mat2img')
-    logger.debug('input matrix shape : {}'.format(input_matrix.size()))
-    image_length = index_matrix[0, 0, torch.ge(index_matrix[0, 0], 0)].size(0)
+    logger.debug('input matrix shape : {}'.format(input_matrix.shape))
+    image_length = index_matrix[index_matrix >= 0].shape[0]
 
     logger.debug('new image length : {}'.format(image_length))
 
-    images = input_matrix.new_zeros((input_matrix.size(0), input_matrix.size(1), image_length), dtype=torch.float)
+    images = np.zeros((input_matrix.shape[0], input_matrix.shape[1], image_length), dtype=np.float)
 
-    logger.debug('new images shape : {}'.format(images.size()))
+    logger.debug('new images shape : {}'.format(images.shape))
 
-    for i in range(index_matrix.size(-2)):  # iterate over the rows of index matrix
-        for j in range(index_matrix.size(-1)):  # iterate over the cols of index matrix
-            if index_matrix[0, 0, i, j] != -1:
-                images[:, :, int(index_matrix[0, 0, i, j])] = input_matrix[:, :,  i, j]
+    for i in range(index_matrix.shape[0]):  # iterate over the rows of index matrix
+        for j in range(index_matrix.shape[1]):  # iterate over the cols of index matrix
+            if index_matrix[i, j] != -1:
+                images[:, :, int(index_matrix[i, j])] = input_matrix[:, :,  i, j]
 
     return images
 
@@ -158,33 +153,37 @@ def pool_index_matrix(index_matrix, kernel_type='Pool', stride=2):
     Pools an index matrix.
 
     Args:
-        index_matrix (torch.Tensor): The index matrix for the images, shape(1, 1, matrix.size).
+        index_matrix (numpy.Array): The index matrix for the images.
         kernel_type (str): The kernel shape, Hex for hexagonal, Square for a square of size 3
             and Pool for a square of size 2.
         stride (int): The stride.
 
     Returns:
-        A torch.Tensor containing the pooled matrix.
+        A numpy.Array containing the pooled matrix.
     """
     logger = logging.getLogger(__name__ + '.pool_index_matrix')
     if kernel_type == 'Pool':
-        weight = torch.Tensor([[1, 0], [0, 0]]).requires_grad_(False)
-        padding = 0
+        new_rows = int(np.floor(index_matrix.shape[0] / stride))
+        new_cols = int(np.floor(index_matrix.shape[1] / stride))
     elif kernel_type == 'Square' or kernel_type == 'Hex':
-        weight = torch.Tensor([[0, 0, 0], [0, 1, 0], [0, 0, 0]]).requires_grad_(False)
-        padding = 1
-    weight.unsqueeze_(0)
-    weight.unsqueeze_(0)
+        new_rows = int(np.ceil(index_matrix.shape[0] / stride))
+        new_cols = int(np.ceil(index_matrix.shape[1] / stride))
+    else:
+        logger.error('Unknown kernel type: {}'.format(kernel_type))
+        raise ValueError
 
-    pooled_matrix = F.conv2d(index_matrix, weight, stride=stride, padding=padding).data
+    pooled_matrix = np.zeros((new_rows, new_cols), dtype=np.int)
+    for i in range(pooled_matrix.shape[0]):
+        for j in range(pooled_matrix.shape[1]):
+            pooled_matrix[i, j] = index_matrix[i*stride, j*stride]
 
-    logger.debug('pooled matrix shape : {}'.format(pooled_matrix.size()))
+    logger.debug('pooled matrix shape : {}'.format(pooled_matrix.shape))
     # Index reconstruction
     idx = 0
-    for i in range(pooled_matrix.size(-2)):  # iterate over the rows of index matrix
-        for j in range(pooled_matrix.size(-1)):  # iterate over the cols of index matrix
-            if pooled_matrix[0, 0, i, j] != -1:
-                pooled_matrix[0, 0, i, j] = idx
+    for i in range(pooled_matrix.shape[0]):
+        for j in range(pooled_matrix.shape[1]):
+            if pooled_matrix[i, j] != -1:
+                pooled_matrix[i, j] = idx
                 idx += 1
 
     return pooled_matrix
@@ -208,7 +207,7 @@ def build_kernel(kernel_type, radius=1, dilation=1):
             if kernel_type == 'Square':
                 kernel[i, j] = 1
             elif kernel_type == 'Hex':
-                kernel[i, j] = int(np.abs(i -j) <= radius * dilation)
+                kernel[i, j] = int(np.abs(i - j) <= radius * dilation)
             else:
                 raise ValueError('Unknown kernel type')
 
@@ -221,7 +220,7 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, d
     The matrix of indices contains for each pixel of interest its neighbours, including itself.
 
     Args:
-        index_matrix (torch.Tensor): Matrix of index for the images, shape(1, 1, matrix.size).
+        index_matrix (numpy.Array): Matrix of index for the images.
         kernel_type (str): The kernel shape, Hex for hexagonal Square for a square and Pool for a square of size 2.
         radius (int): The radius of the kernel.
         stride (int): The stride.
@@ -276,12 +275,12 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, d
 
     neighbours = []
 
-    idx_mtx = np.ones((index_matrix.size(-2)+padding, index_matrix.size(-1)+padding), dtype=int) * (-1)
+    idx_mtx = np.full((index_matrix.shape[0]+padding, index_matrix.shape[1]+padding), -1, dtype=int)
     offset = int(padding/2)
     if offset == 0:
-        idx_mtx = index_matrix[0, 0, :, :].numpy()
+        idx_mtx = index_matrix[:, :]
     else:
-        idx_mtx[offset:-offset, offset:-offset] = index_matrix[0, 0, :, :].numpy()
+        idx_mtx[offset:-offset, offset:-offset] = index_matrix[:, :]
 
     for i in range(0, idx_mtx.shape[0]-bound, stride):
         for j in range(0, idx_mtx.shape[1]-bound, stride):
@@ -291,7 +290,6 @@ def neighbours_extraction(index_matrix, kernel_type='Hex', radius=1, stride=1, d
             neighbours.append(patch)
 
     neighbours = np.asarray(neighbours).T
-    neighbours = torch.from_numpy(neighbours).long()
 
     return neighbours
 
@@ -300,15 +298,15 @@ def prepare_mask(indices):
     """Prepares the indices and the mask for the GEMM im2col operation.
 
     Args:
-        indices (torch.Tensor): The matrix of indices containing the neighbours of each pixel of interest.
+        indices (numpy.Array): The matrix of indices containing the neighbours of each pixel of interest.
 
     """
     padded = indices == -1
-    new_indices = indices.clone()
+    new_indices = indices.copy()
     new_indices[padded] = 0
 
-    mask = torch.FloatTensor([1, 0])
-    mask = mask[..., padded.long()]
+    mask = np.array([1, 0], dtype=np.float32)
+    mask = mask[..., padded.astype(int)]
 
     return new_indices, mask
 
@@ -324,8 +322,8 @@ def square_to_hexagonal_index_matrix(image):
         image: input tensor of shape (c, n, m)
 
         """
-    index_matrix = torch.ones(image.shape[1],
-                              image.shape[2] + int(np.ceil(image.shape[1] / 2))) * -1
+    index_matrix = np.full((image.shape[1],
+                           image.shape[2] + int(np.ceil(image.shape[1] / 2))), -1)
     n = 0
     for i in range(image.shape[1]):
         for j in range(image.shape[2]):
@@ -338,22 +336,22 @@ def square_to_hexagonal(image):
     """Rough sampling of square images to hexagonal grid
 
     Args:
-        image: image tensor of shape (c, n, m)
+        image (numpy.Array): image tensor of shape (c, n, m)
 
     """
-    image_tr = image.clone()
+    image_tr = image.copy()
     image_tr[:, :, :-1] = image[:, :, 1:]
     image_mean = (image + image_tr) / 2
     image[:, 1::2, :] = image_mean[:, 1::2, :]
 
-    return image.view(image.shape[0], -1)
+    return image.reshape(image.shape[0], -1)
 
 
 def build_hexagonal_position(index_matrix):
     """Computes the position of the pixels in the hexagonal grid from the index matrix.
 
     Args:
-        index_matrix (tensor): The index matrix representing the index of each pixel in the axial addressing system.
+        index_matrix (numpy.Array): The index matrix representing the index of each pixel in the axial addressing system.
     """
     pix_positions = []
     for i in range(index_matrix.shape[0]):

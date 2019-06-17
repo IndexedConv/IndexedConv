@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
         cv_nn = nn.Conv2d(c_in, c_out, kernel_size=3, stride=1, padding=1)
 
-        index_matrix_square = torch.arange(image_size[2] * image_size[3]).view(image_size[2:]).unsqueeze(0).unsqueeze(0)
+        index_matrix_square = np.arange(image_size[2] * image_size[3]).view(image_size[2:])
         indices_conv0_square = utils.neighbours_extraction(index_matrix_square,
                                                            kernel_type='Square',
                                                            stride=1)
@@ -186,7 +186,7 @@ if __name__ == '__main__':
         f = h5py.File(data_directory + '/aid' + str(size) + '_hexa.h5', 'r')  # TODO check the existence of data
         data = f['images'][()]
         labels = f['labels'][()]
-        index_matrix = torch.tensor(f['index_matrix'][()])
+        index_matrix = f['index_matrix'][()]
         class_names = f.attrs['class_names']
         f.close()
 
@@ -203,7 +203,6 @@ if __name__ == '__main__':
 
         logger.info('batch size: {} iterations: {}'.format(batch_size, len(hex_loader)))
 
-        index_matrix = index_matrix.unsqueeze_(0).unsqueeze_(0)
         indexed_net = WideNetIndexConvIndexPool(index_matrix, 'Hex', 30).to(device)
         nn_net = WideNetMasked(30).to(device)
 

@@ -170,14 +170,14 @@ if __name__ == '__main__':
                     labels.append(label)
                 f.create_dataset('images', data=np.array(images))
                 f.create_dataset('labels', data=np.array(labels))
-                f.create_dataset('index_matrix', data= index_matrix)
+                f.create_dataset('index_matrix', data=index_matrix)
                 f.attrs['class_names'] = np.array(aid.classes, dtype=h5py.special_dtype(vlen=str))
 
         # load hexagonal cifar
         f = h5py.File(data_directory + '/aid' + str(resize_size[0]) + '_hexa.h5', 'r')
         data = f['images'][()]
         labels = f['labels'][()]
-        index_matrix = torch.tensor(f['index_matrix'][()])
+        index_matrix = f['index_matrix'][()]
         class_names = f.attrs['class_names']
         f.close()
 
@@ -208,12 +208,9 @@ if __name__ == '__main__':
         f = h5py.File(data_directory + '/aid' + str(resize_size[0]) + '.h5', 'r')
         data = f['images'][()]
         labels = f['labels'][()]
-        index_matrix = torch.tensor(f['index_matrix'][()])
+        index_matrix = f['index_matrix'][()]
         class_names = f.attrs['class_names']
         f.close()
-
-    index_matrix.unsqueeze_(0)
-    index_matrix.unsqueeze_(0)
 
     # Normalize data
     data = utils.normalize(data)

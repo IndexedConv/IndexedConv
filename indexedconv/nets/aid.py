@@ -8,9 +8,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-from indexedconv.engine import MaskedConv2d
+from indexedconv.engine.torch import MaskedConv2d
 import indexedconv.utils as utils
-import indexedconv.engine as engine
+import indexedconv.engine.torch as engine
 
 
 class WideNetIndexConvIndexPool(nn.Module):

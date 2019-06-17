@@ -147,7 +147,7 @@ if __name__ == '__main__':
     f = h5py.File(data_directory + '/aid' + str(resize_size[0]) + '_hexa.h5', 'r')
     data = f['images'][()]
     labels = f['labels'][()]
-    index_matrix = torch.tensor(f.attrs['index_matrix'])
+    index_matrix = f.attrs['index_matrix']
     class_names = f.attrs['class_names']
     f.close()
 

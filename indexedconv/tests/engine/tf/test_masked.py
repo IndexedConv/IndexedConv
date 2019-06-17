@@ -1,8 +1,8 @@
 import unittest
 
-import torch
+import tensorflow
 
-from indexedconv.engine import MaskedConv2d
+from indexedconv.engine.tf import MaskedConv2d
 
 
 class TestMaskedConv(unittest.TestCase):

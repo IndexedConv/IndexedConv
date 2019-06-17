@@ -1,8 +1,10 @@
 import unittest
+import sys
 
-import torch
+import tensorflow
+import numpy as np
 
-from indexedconv.engine import IndexedConv, IndexedAveragePool2d, IndexedMaxPool2d
+from indexedconv.engine.tf import IndexedConv, IndexedAveragePool2d, IndexedMaxPool2d
 from indexedconv.utils import neighbours_extraction
 
 
@@ -13,7 +15,7 @@ class TestIndexedConv(unittest.TestCase):
         self.data_3 = torch.tensor([[1, 0, 1, 0, 1, 0, 1, 0, 1],
                                     [1, 0, 1, 0, 1, 0, 1, 0, 1],
                                     [1, 0, 1, 0, 1, 0, 1, 0, 1]], dtype=torch.float).unsqueeze(0)
-        index_matrix = torch.tensor([[0, 1, 2], [3, 4, 5], [6, 7, 8]]).unsqueeze(0).unsqueeze(0)
+        index_matrix = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
         neighbours_indices = neighbours_extraction(index_matrix, 'Square')
         self.conv11 = IndexedConv(1, 1, neighbours_indices)
         self.conv11.bias = torch.nn.Parameter(torch.tensor([1], dtype=torch.float))
@@ -52,11 +54,11 @@ class TestIndexedMaxPool2d(unittest.TestCase):
                                     [1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4],
                                     [1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4]],
                                    dtype=torch.float).unsqueeze(0)
-        index_matrix = torch.tensor([[0, 1, 2, 3, 4],
-                                     [5, 6, 7, 8, 9],
-                                     [10, 11, 12, 13, 14],
-                                     [15, 16, 17, 18, 19],
-                                     [20, 21, 22, 23, 24]]).unsqueeze(0).unsqueeze(0)
+        index_matrix = np.array([[0, 1, 2, 3, 4],
+                                 [5, 6, 7, 8, 9],
+                                 [10, 11, 12, 13, 14],
+                                 [15, 16, 17, 18, 19],
+                                 [20, 21, 22, 23, 24]])
         neighbours_indices = neighbours_extraction(index_matrix, kernel_type='Pool', stride=2)
         self.maxpool = IndexedMaxPool2d(neighbours_indices)
 
@@ -83,11 +85,11 @@ class TestIndexedAveragePool2d(unittest.TestCase):
                                     [1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4],
                                     [1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4, 0, 5, 1, 0, 2, 0, 3, 0, 4]],
                                    dtype=torch.float).unsqueeze(0)
-        index_matrix = torch.tensor([[0, 1, 2, 3, 4],
-                                     [5, 6, 7, 8, 9],
-                                     [10, 11, 12, 13, 14],
-                                     [15, 16, 17, 18, 19],
-                                     [20, 21, 22, 23, 24]]).unsqueeze(0).unsqueeze(0)
+        index_matrix = np.array([[0, 1, 2, 3, 4],
+                                 [5, 6, 7, 8, 9],
+                                 [10, 11, 12, 13, 14],
+                                 [15, 16, 17, 18, 19],
+                                 [20, 21, 22, 23, 24]])
         neighbours_indices = neighbours_extraction(index_matrix, kernel_type='Pool', stride=2)
         self.avgpool = IndexedAveragePool2d(neighbours_indices)
 
@@ -103,4 +105,5 @@ class TestIndexedAveragePool2d(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
+    unittest.TextTestRunner(verbosity=2).run(suite)

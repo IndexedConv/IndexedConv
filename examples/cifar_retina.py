@@ -166,7 +166,7 @@ if __name__ == '__main__':
         logger.info('Original CIFAR')
         train_set = datasets.CIFAR10(data_directory, train=True, download=True)
         train_data_all = train_set.train_data.transpose(0, 3, 1, 2).astype(np.float32)
-        index_matrix = torch.arange(train_data_all.shape[2] * train_data_all.shape[3])
+        index_matrix = np.arange(train_data_all.shape[2] * train_data_all.shape[3])
         index_matrix = index_matrix.reshape(train_data_all.shape[2], train_data_all.shape[3])
         train_data_all = train_data_all.reshape(train_data_all.shape[0], train_data_all.shape[1], -1)
         train_labels_all = train_set.train_labels
@@ -174,9 +174,6 @@ if __name__ == '__main__':
         test_data = test_set.test_data.transpose(0, 3, 1, 2).astype(np.float32)
         test_data = test_data.reshape(test_data.shape[0], test_data.shape[1], -1)
         test_labels = test_set.test_labels
-
-    index_matrix.unsqueeze_(0)
-    index_matrix.unsqueeze_(0)
 
     # Normalize data
     train_data_all = utils.normalize(train_data_all)

@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import indexedconv.utils as utils
-from indexedconv.engine import IndexedConv, IndexedMaxPool2d
+from indexedconv.engine.torch import IndexedConv, IndexedMaxPool2d
 
 
 class GLNet2HexaConvForMnist(nn.Module):

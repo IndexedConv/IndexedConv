@@ -66,7 +66,7 @@ def test(model, device, test_loader, epoch, val=True, writer=None):
 
 def plot_image(img, img_hex, index_matrix, path, writer=None):
 
-    idx_mtx = index_matrix.view(index_matrix.shape[-2:])
+    idx_mtx = index_matrix.copy()
     pix_pos = utils.build_hexagonal_position(idx_mtx)
 
     f, (ax0, ax1) = plt.subplots(1, 2)
@@ -191,7 +191,7 @@ if __name__ == '__main__':
         logger.info('Original CIFAR')
         train_set = datasets.CIFAR10(data_directory, train=True, download=True)
         train_data_all = train_set.train_data.transpose(0, 3, 1, 2).astype(np.float32)
-        index_matrix = torch.arange(train_data_all.shape[2] * train_data_all.shape[3])
+        index_matrix = np.arange(train_data_all.shape[2] * train_data_all.shape[3])
         index_matrix = index_matrix.reshape(train_data_all.shape[2], train_data_all.shape[3])
         train_data_all = train_data_all.reshape(train_data_all.shape[0], train_data_all.shape[1], -1)
         train_labels_all = train_set.train_labels
@@ -199,9 +199,6 @@ if __name__ == '__main__':
         test_data = test_set.test_data.transpose(0, 3, 1, 2).astype(np.float32)
         test_data = test_data.reshape(test_data.shape[0], test_data.shape[1], -1)
         test_labels = test_set.test_labels
-
-    index_matrix.unsqueeze_(0)
-    index_matrix.unsqueeze_(0)
 
     # Normalize data
     train_data_all = utils.normalize(train_data_all)

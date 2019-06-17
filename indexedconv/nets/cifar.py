@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import numpy as np
 
 import indexedconv.utils as utils
-import indexedconv.engine as engine
+import indexedconv.engine.torch as engine
 
 
 class WideNetIndexConvIndexPool(nn.Module):

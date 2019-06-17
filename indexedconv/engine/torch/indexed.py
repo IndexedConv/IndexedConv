@@ -31,8 +31,8 @@ class IndexedMaxPool2d(nn.Module):
         self.logger = logging.getLogger(__name__ + '.IndexedMaxPool2d')
         self.indices = indices
         self.indices, self.mask = utils.prepare_mask(self.indices)
-        self.register_buffer('indices_', self.indices)
-        self.register_buffer('mask_', self.mask)
+        self.register_buffer('indices_', torch.from_numpy(self.indices))
+        self.register_buffer('mask_', torch.from_numpy(self.mask))
 
     def forward(self, input_images):
         self.logger.debug('Max pool image')
@@ -63,8 +63,8 @@ class IndexedAveragePool2d(nn.Module):
         self.logger = logging.getLogger(__name__ + '.IndexedAveragePool2d')
         self.indices = indices
         self.indices, self.mask = utils.prepare_mask(self.indices)
-        self.register_buffer('indices_', self.indices)
-        self.register_buffer('mask_', self.mask)
+        self.register_buffer('indices_', torch.from_numpy(self.indices))
+        self.register_buffer('mask_', torch.from_numpy(self.mask))
 
     def forward(self, input_images):
         self.logger.debug('Average pool image')
@@ -141,8 +141,8 @@ class IndexedConv(nn.Module):
         self.indices, self.mask = utils.prepare_mask(indices)
         self.output_width = self.indices.shape[1]
 
-        self.register_buffer('indices_', self.indices)
-        self.register_buffer('mask_', self.mask)
+        self.register_buffer('indices_', torch.from_numpy(self.indices))
+        self.register_buffer('mask_', torch.from_numpy(self.mask))
 
         self.weight = Parameter(torch.Tensor(
             out_channels, in_channels // groups, kernel_size))

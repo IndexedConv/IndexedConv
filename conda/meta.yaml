@@ -1,6 +1,6 @@
 package:
   name: indexedconv
-  version: "1.0"
+  version: "2.0.a"
 
 source:
   git_rev: master
@@ -13,6 +13,7 @@ requirements:
   run:
     - python
     - pytorch
+    - tensorflow
     - numpy
     - matplotlib
     - tensorboardx

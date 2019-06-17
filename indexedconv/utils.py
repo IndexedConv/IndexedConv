@@ -353,8 +353,8 @@ def delaunay_simplices_neighbors_extraction(positions, max_distance):
             sum_y = np.sum(pos[:, 1])
             barycentres.append([sum_x / length, sum_y / length])
         np_neighborhood = np.full([len(neighborhood), len(max(neighborhood, key=lambda x: len(x)))], -1)
-        for i, j in enumerate(neighborhood):
-            np_neighborhood[i][0:len(j)] = j
+        for k, j in enumerate(neighborhood):
+            np_neighborhood[k][0:len(j)] = j
 
     return np_neighborhood.T, np.array(barycentres)
 
@@ -378,8 +378,8 @@ def delaunay_vertices_neighbors_extraction(positions, max_distance):
         end_ptr = idptr[i+1]
         neighbors.append(list(vertices[start_ptr:end_ptr]))
     neighbors = clean_vertices(tri.points, neighbors, max_distance)
-    np_neighbors = np.full([len(neighbors),len(max(neighbors,key = lambda x: len(x)))], -1)
-    for i,j in enumerate(neighbors):
+    np_neighbors = np.full([len(neighbors), len(max(neighbors, key=lambda x: len(x)))], -1)
+    for i, j in enumerate(neighbors):
         np_neighbors[i][0:len(j)] = j
     return np_neighbors.T
 

@@ -16,7 +16,7 @@ setuptools.setup(
     url="https://github.com/IndexedConv/IndexedConv",
     install_requires=[
         "torch>=1.0",
-        "tensorflow"
+        "tensorflow",
         "torchvision",
         "numpy",
         "tensorboardx",

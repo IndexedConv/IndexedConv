@@ -127,11 +127,11 @@ class IndexedConv(nn.Module):
         >>> output = m(input)
     """
 
-    def __init__(self, in_channels, out_channels, indices, bias=True):
+    def __init__(self, in_channels, out_channels, indices, bias=True, groups=1):
         super(IndexedConv, self).__init__()
-        self.logger = logging.getLogger(__name__ + '.IndexedConv')
-
-        groups = 1
+        assert in_channels % groups == 0, 'ValueError: in_channels must be divisible by groups'
+        assert out_channels % groups == 0, 'ValueError: out_channels must be divisible by groups'
+        self.groups = groups
 
         kernel_size = indices.shape[0]
 
@@ -166,10 +166,19 @@ class IndexedConv(nn.Module):
         col = input[..., self.indices_] * self.mask_
         # col is of shape (N, C_in, K, Wo)
         col = col.view(nbatch, -1, self.output_width)
-        out = torch.bmm(self.weight.view(self.out_channels, -1).expand(nbatch, -1, -1), col)
-        if self.bias is not None:
-            out = out + self.bias.unsqueeze(1)
-
+        out = torch.zeros(nbatch, self.out_channels, self.output_width)
+        cout_per_group = int(self.out_channels / self.groups)
+        for g in range(self.groups):
+            sub_col = utils.subtensor(col, 1, self.groups, g)
+            weight = utils.subtensor(self.weight, 0, self.groups, g)
+            out_g = torch.bmm(weight.view(cout_per_group, -1).expand(nbatch, -1, -1), sub_col)
+            if self.bias is not None:
+                bias = utils.subtensor(self.bias.unsqueeze(1), 0, self.groups, g)
+                out_g = out_g + bias
+            out[:, g*cout_per_group:(g+1)*cout_per_group] = out_g
+        # out = torch.bmm(self.weight.view(self.out_channels, -1).expand(nbatch, -1, -1).repeat(1, 1, self.groups), col)
+        # if self.bias is not None:
+        #     out = out + self.bias.unsqueeze(1)
         return out
 
     def __repr__(self):

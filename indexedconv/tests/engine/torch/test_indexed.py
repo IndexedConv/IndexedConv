@@ -30,6 +30,11 @@ class TestIndexedConv(unittest.TestCase):
         self.conv31.weight = torch.nn.Parameter(torch.tensor([[-1, -1, -1, -1, 8, -1, -1, -1, -1],
                                                               [-1, -1, -1, -1, 8, -1, -1, -1, -1],
                                                               [-1, -1, -1, -1, 8, -1, -1, -1, -1]], dtype=torch.float))
+        self.conv33 = IndexedConv(3, 3, neighbours_indices, groups=3)
+        self.conv33.bias = torch.nn.Parameter(torch.tensor([1, 1, 1], dtype=torch.float))
+        self.conv33.weight = torch.nn.Parameter(torch.tensor([[-1, -1, -1, -1, 8, -1, -1, -1, -1],
+                                                              [-1, -1, -1, -1, 8, -1, -1, -1, -1],
+                                                              [-1, -1, -1, -1, 8, -1, -1, -1, -1]], dtype=torch.float))
 
     def test_indexedconv11(self):
         torch.testing.assert_allclose(self.conv11(self.data_1),
@@ -44,6 +49,13 @@ class TestIndexedConv(unittest.TestCase):
     def test_indexedconv31(self):
         torch.testing.assert_allclose(self.conv31(self.data_3),
                                       torch.tensor([22, -8, 22, -8, 13, -8, 22, -8, 22], dtype=torch.float).unsqueeze(0).unsqueeze(0))
+
+    def test_indexedconv33(self):
+        # test group conv
+        torch.testing.assert_allclose(self.conv33(self.data_3),
+                                      torch.tensor([[8, -2, 8, -2, 5, -2, 8, -2, 8],
+                                                    [8, -2, 8, -2, 5, -2, 8, -2, 8],
+                                                    [8, -2, 8, -2, 5, -2, 8, -2, 8]], dtype=torch.float).unsqueeze(0))
 
 
 class TestIndexedMaxPool2d(unittest.TestCase):

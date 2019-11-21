@@ -56,6 +56,11 @@ def compute_total_parameter_number(net):
     return num_parameters
 
 
+def subtensor(tensor, dim, groups, g):
+    n = int(tensor.size()[dim] / groups)
+    return tensor.narrow(dim, n*g, n)
+
+
 #####################
 # Indexed functions #
 #####################

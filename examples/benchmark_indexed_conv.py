@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 import numpy as np
 
 import indexedconv.utils as utils
-import indexedconv.engine as engine
+import indexedconv.engine.torch as engine
 from indexedconv.nets.aid import WideNet, WideNetIndexConvIndexPool, WideNetMasked
 
 
@@ -33,6 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('--cout', help='number of features of the convolution layer', type=int, default=32)
     parser.add_argument('--batch', nargs='+', type=int, default=[16, 32, 64, 100])
     parser.add_argument('--device', help='device to use, for example cpu or cuda:0', type=str, default='cuda:0')
+    parser.add_argument('--onlyconv', help='whether to benchmark on single convolutions', type=bool, default=True)
 
     args = parser.parse_args()
 
@@ -45,6 +46,7 @@ if __name__ == '__main__':
     c_out = args.cout
     batch_sizes = args.batch
     device = torch.device(args.device)
+    onlyconv = args.onlyconv
 
     if not os.path.exists(main_directory):
         os.makedirs(main_directory)
@@ -69,12 +71,14 @@ if __name__ == '__main__':
 
     indexed_conv = []
     nn_conv = []
+    group_conv = []
     indexed_square_net = []
     nn_square_net = []
     indexed_hexa_net = []
     nn_hexa_net = []
     indexed_conv_ram = []
     nn_conv_ram = []
+    group_conv_ram = []
     indexed_square_net_ram = []
     nn_square_net_ram = []
     indexed_hexa_net_ram = []
@@ -91,15 +95,11 @@ if __name__ == '__main__':
         logger.info('Compare indexed conv and nn.Conv2d on square dummy images with 1 conv')
         logger.info('batch size: {} iterations: {}'.format(batch_size, iterations))
 
-        cv_nn = nn.Conv2d(c_in, c_out, kernel_size=3, stride=1, padding=1)
-
-        index_matrix_square = np.arange(image_size[2] * image_size[3]).view(image_size[2:])
+        index_matrix_square = torch.arange(image_size[2] * image_size[3]).view(image_size[2:])
         indices_conv0_square = utils.neighbours_extraction(index_matrix_square,
                                                            kernel_type='Square',
                                                            stride=1)
         cv_square = engine.IndexedConv(c_in, c_out, indices_conv0_square)
-
-        cv_nn.to(device)
         cv_square.to(device)
         ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
         logger.info('Memory allocated : {} in MB'.format(ram_b))
@@ -120,6 +120,8 @@ if __name__ == '__main__':
         del loss_square
         torch.cuda.empty_cache()
 
+        cv_nn = nn.Conv2d(c_in, c_out, kernel_size=3, stride=1, padding=1)
+        cv_nn.to(device)
         ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
         logger.info('Memory allocated : {} in MB'.format(ram_b))
         start_nn = time.time()
@@ -139,122 +141,156 @@ if __name__ == '__main__':
         del loss_nn
         torch.cuda.empty_cache()
 
-        logger.info('Compare indexed conv and nn.Conv2d on square images with WideNet')
+        logger.info('Compare indexed conv and indexed group conv on square dummy images with 1 conv')
         logger.info('batch size: {} iterations: {}'.format(batch_size, iterations))
 
-        indexed_net = WideNetIndexConvIndexPool(index_matrix_square.float(), 'Square', 30).to(device)
-        nn_net = WideNet(30).to(device)
+        index_matrix_square = torch.arange(image_size[2] * image_size[3]).view(image_size[2:])
+        indices_conv0_square = utils.neighbours_extraction(index_matrix_square,
+                                                           kernel_type='Square',
+                                                           stride=1)
 
+        cv_square_group = engine.IndexedConv(c_in, c_out, indices_conv0_square, groups=c_in)
+        cv_square_group.to(device)
         ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
         logger.info('Memory allocated : {} in MB'.format(ram_b))
-        start_indexed = time.time()
+        start_group = time.time()
         for _ in range(iterations):
-            out = indexed_net(dummy_data.view(batch_size, c_in, -1))
-            loss = torch.sum(out)
-            loss.backward()
-        t = (time.time() - start_indexed) / iterations
-        indexed_square_net.append(t)
+            cv_square_group.zero_grad()
+            convoluted_group = cv_square_group(dummy_data.view(batch_size, c_in, -1))
+            loss_group = torch.sum(convoluted_group)
+            loss_group.backward()
+        t = (time.time() - start_group) / iterations
+        group_conv.append(t)
         ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
         logger.info('Memory allocated : {} in MB'.format(ram_f))
-        indexed_square_net_ram.append(ram_f - ram_b)
-        logger.info('Time for indexed widenet {}'.format(t))
-        del indexed_net
-        del out
-        del loss
+        group_conv_ram.append(ram_f - ram_b)
+        logger.info('Time for 1 group conv + backward : {}'.format(t))
+        del cv_square_group
+        del convoluted_group
+        del loss_group
         torch.cuda.empty_cache()
 
-        ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
-        logger.info('Memory allocated : {} in MB'.format(ram_b))
-        start_nn = time.time()
-        for _ in range(iterations):
-            out = nn_net(dummy_data)
-            loss = torch.sum(out)
-            loss.backward()
-        t = (time.time() - start_nn) / iterations
-        nn_square_net.append(t)
-        ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
-        logger.info('Memory allocated : {} in MB'.format(ram_f))
-        nn_square_net_ram.append(ram_f - ram_b)
-        logger.info('Time for nn widenet {}'.format(t))
-        del nn_net
-        del out
-        del loss
-        torch.cuda.empty_cache()
+        if not onlyconv:
+            logger.info('Compare indexed conv and nn.Conv2d on square images with WideNet')
+            logger.info('batch size: {} iterations: {}'.format(batch_size, iterations))
 
-        logger.info('Compare indexed conv and nn.Conv2d on hexagonal images with WideNet')
+            indexed_net = WideNetIndexConvIndexPool(index_matrix_square.float(), 'Square', 30).to(device)
 
-        f = h5py.File(data_directory + '/aid' + str(size) + '_hexa.h5', 'r')  # TODO check the existence of data
-        data = f['images'][()]
-        labels = f['labels'][()]
-        index_matrix = f['index_matrix'][()]
-        class_names = f.attrs['class_names']
-        f.close()
+            ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+            logger.info('Memory allocated : {} in MB'.format(ram_b))
+            start_indexed = time.time()
+            for _ in range(iterations):
+                out = indexed_net(dummy_data.view(batch_size, c_in, -1))
+                loss = torch.sum(out)
+                loss.backward()
+            t = (time.time() - start_indexed) / iterations
+            indexed_square_net.append(t)
+            ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+            logger.info('Memory allocated : {} in MB'.format(ram_f))
+            indexed_square_net_ram.append(ram_f - ram_b)
+            logger.info('Time for indexed widenet {}'.format(t))
+            del indexed_net
+            del out
+            del loss
+            torch.cuda.empty_cache()
 
-        data_shifted = np.zeros(data.shape[0:2] + index_matrix.shape).astype(np.float32)
-        for i in range(index_matrix.shape[0]):
-            for j in range(index_matrix.shape[1]):
-                if not int(index_matrix[i, j]) == -1:
-                    data_shifted[:, :, i, j] = data[:, :, int(index_matrix[i, j])]
+            nn_net = WideNet(30).to(device)
 
-        sh_dataset = utils.NumpyDataset(data_shifted, labels, transform=utils.NumpyToTensor())
-        hex_dataset = utils.NumpyDataset(data, labels, transform=utils.NumpyToTensor())
-        sh_loader = DataLoader(sh_dataset, batch_size=batch_size, shuffle=False)
-        hex_loader = DataLoader(hex_dataset, batch_size=batch_size, shuffle=False)
+            ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+            logger.info('Memory allocated : {} in MB'.format(ram_b))
+            start_nn = time.time()
+            for _ in range(iterations):
+                out = nn_net(dummy_data)
+                loss = torch.sum(out)
+                loss.backward()
+            t = (time.time() - start_nn) / iterations
+            nn_square_net.append(t)
+            ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+            logger.info('Memory allocated : {} in MB'.format(ram_f))
+            nn_square_net_ram.append(ram_f - ram_b)
+            logger.info('Time for nn widenet {}'.format(t))
+            del nn_net
+            del out
+            del loss
+            torch.cuda.empty_cache()
 
-        logger.info('batch size: {} iterations: {}'.format(batch_size, len(hex_loader)))
+            logger.info('Compare indexed conv and nn.Conv2d on hexagonal images with WideNet')
 
-        indexed_net = WideNetIndexConvIndexPool(index_matrix, 'Hex', 30).to(device)
-        nn_net = WideNetMasked(30).to(device)
+            f = h5py.File(data_directory + '/aid' + str(size) + '_hexa.h5', 'r')  # TODO check the existence of data
+            data = f['images'][()]
+            labels = f['labels'][()]
+            index_matrix = f['index_matrix'][()]
+            class_names = f.attrs['class_names']
+            f.close()
 
-        ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
-        logger.info('Memory allocated : {} in MB'.format(ram_b))
-        start_indexed = time.time()
-        for d in hex_loader:
-            out = indexed_net(d[0].to(device))
-            loss = torch.sum(out)
-            loss.backward()
-        t = (time.time() - start_indexed) / len(hex_loader)
-        indexed_hexa_net.append(t)
-        ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
-        logger.info('Memory allocated : {} in MB'.format(ram_f))
-        indexed_hexa_net_ram.append(ram_f - ram_b)
-        logger.info('Time for indexed widenet {}'.format(t))
-        del indexed_net
-        del out
-        del loss
-        torch.cuda.empty_cache()
+            data_shifted = np.zeros(data.shape[0:2] + index_matrix.shape).astype(np.float32)
+            for i in range(index_matrix.shape[0]):
+                for j in range(index_matrix.shape[1]):
+                    if not int(index_matrix[i, j]) == -1:
+                        data_shifted[:, :, i, j] = data[:, :, int(index_matrix[i, j])]
 
-        ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
-        logger.info('Memory allocated : {} in MB'.format(ram_b))
-        start_nn = time.time()
-        for d in sh_loader:
-            out = nn_net(d[0].to(device))
-            loss = torch.sum(out)
-            loss.backward()
-        t = (time.time() - start_nn) / len(sh_loader)
-        nn_hexa_net.append(t)
-        ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
-        logger.info('Memory allocated : {} in MB'.format(ram_f))
-        nn_hexa_net_ram.append(ram_f - ram_b)
-        logger.info('Time for masked nn widenet {}'.format(t))
-        del nn_net
-        del out
-        del loss
-        torch.cuda.empty_cache()
+            sh_dataset = utils.NumpyDataset(data_shifted, labels, transform=utils.NumpyToTensor())
+            hex_dataset = utils.NumpyDataset(data, labels, transform=utils.NumpyToTensor())
+            sh_loader = DataLoader(sh_dataset, batch_size=batch_size, shuffle=False)
+            hex_loader = DataLoader(hex_dataset, batch_size=batch_size, shuffle=False)
+
+            logger.info('batch size: {} iterations: {}'.format(batch_size, len(hex_loader)))
+
+            indexed_net = WideNetIndexConvIndexPool(index_matrix, 'Hex', 30).to(device)
+            nn_net = WideNetMasked(30).to(device)
+
+            ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+            logger.info('Memory allocated : {} in MB'.format(ram_b))
+            start_indexed = time.time()
+            for d in hex_loader:
+                out = indexed_net(d[0].to(device))
+                loss = torch.sum(out)
+                loss.backward()
+            t = (time.time() - start_indexed) / len(hex_loader)
+            indexed_hexa_net.append(t)
+            ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+            logger.info('Memory allocated : {} in MB'.format(ram_f))
+            indexed_hexa_net_ram.append(ram_f - ram_b)
+            logger.info('Time for indexed widenet {}'.format(t))
+            del indexed_net
+            del out
+            del loss
+            torch.cuda.empty_cache()
+
+            ram_b = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+            logger.info('Memory allocated : {} in MB'.format(ram_b))
+            start_nn = time.time()
+            for d in sh_loader:
+                out = nn_net(d[0].to(device))
+                loss = torch.sum(out)
+                loss.backward()
+            t = (time.time() - start_nn) / len(sh_loader)
+            nn_hexa_net.append(t)
+            ram_f = (torch.cuda.memory_allocated() + torch.cuda.memory_cached()) / 1024 / 1024
+            logger.info('Memory allocated : {} in MB'.format(ram_f))
+            nn_hexa_net_ram.append(ram_f - ram_b)
+            logger.info('Time for masked nn widenet {}'.format(t))
+            del nn_net
+            del out
+            del loss
+            torch.cuda.empty_cache()
 
     dataf = pd.DataFrame()
     dataf['indexed_conv'] = indexed_conv
     dataf['nn_conv'] = nn_conv
-    dataf['indexed_square_net'] = indexed_square_net
-    dataf['nn_square_net'] = nn_square_net
-    dataf['indexed_hexa_net'] = indexed_hexa_net
-    dataf['nn_hexa_net'] = nn_hexa_net
+    dataf['group_conv'] = group_conv
     dataf['indexed_conv_ram'] = indexed_conv_ram
     dataf['nn_conv_ram'] = nn_conv_ram
-    dataf['indexed_square_net_ram'] = indexed_square_net_ram
-    dataf['nn_square_net_ram'] = nn_square_net_ram
-    dataf['indexed_hexa_net_ram'] = indexed_hexa_net_ram
-    dataf['nn_hexa_net_ram'] = nn_hexa_net_ram
+    dataf['group_conv_ram'] = group_conv_ram
+    if not onlyconv:
+        dataf['indexed_square_net'] = indexed_square_net
+        dataf['nn_square_net'] = nn_square_net
+        dataf['indexed_hexa_net'] = indexed_hexa_net
+        dataf['nn_hexa_net'] = nn_hexa_net
+        dataf['indexed_square_net_ram'] = indexed_square_net_ram
+        dataf['nn_square_net_ram'] = nn_square_net_ram
+        dataf['indexed_hexa_net_ram'] = indexed_hexa_net_ram
+        dataf['nn_hexa_net_ram'] = nn_hexa_net_ram
     if device.type == 'gpu':
         device_name = torch.cuda.get_device_name(device.index).split(' ')[-1]
     else:

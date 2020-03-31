@@ -14,7 +14,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import torch.optim as optim
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard.writer import SummaryWriter
 
 import indexedconv.utils as utils
 from indexedconv.nets.cifar import WideNetIndexConvIndexPool

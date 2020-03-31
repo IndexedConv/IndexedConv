@@ -18,7 +18,6 @@ setuptools.setup(
         "torch>=0.4",
         "torchvision",
         "numpy",
-        "tensorboardx",
         "matplotlib",
         "h5py",
         "sphinxcontrib-katex"

@@ -38,14 +38,6 @@ Install with pip:
 
 Install with conda:
 
-first add conda-forge channel for tensorboardX if needed
-
-.. code-block:: bash
-
-    conda config --append channels conda-forge
-    
-.. code-block:: bash
-
     conda install -c gammalearn indexedconv
 
 
@@ -57,7 +49,6 @@ Requirements
     "torch>=0.4",
     "torchvision",
     "numpy",
-    "tensorboardx",
     "matplotlib",
     "h5py",
     "sphinxcontrib-katex"

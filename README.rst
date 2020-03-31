@@ -46,7 +46,7 @@ Requirements
 
 .. code-block:: bash
 
-    "torch>=0.4",
+    "torch>=1.4",
     "torchvision",
     "numpy",
     "matplotlib",

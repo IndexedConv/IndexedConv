@@ -15,7 +15,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/IndexedConv/IndexedConv",
     install_requires=[
-        "torch>=0.4",
+        "torch>=1.4",
         "torchvision",
         "numpy",
         "matplotlib",

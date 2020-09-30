@@ -28,7 +28,9 @@ Install from IndexedConv folder:
 
 .. code-block:: bash
 
-    python setup.py install
+    git clone https://github.com/IndexedConv/IndexedConv.git
+    cd IndexedConv
+    pip install .
     
 Install with pip:
 

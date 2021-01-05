@@ -256,7 +256,7 @@ if __name__ == '__main__':
     dataf['nn_square_net_ram'] = nn_square_net_ram
     dataf['indexed_hexa_net_ram'] = indexed_hexa_net_ram
     dataf['nn_hexa_net_ram'] = nn_hexa_net_ram
-    if device.type == 'gpu':
+    if device.type == 'cuda':
         device_name = torch.cuda.get_device_name(device.index).split(' ')[-1]
     else:
         device_name = ''

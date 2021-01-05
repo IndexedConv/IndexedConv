@@ -91,11 +91,11 @@ def create_index_matrix(nbRow, nbCol, injTable):
     for i, idx in enumerate(injTable):
         idx_row = int(idx // nbRow)
         idx_col = int(idx % nbCol)
-        index_matrix[idx_row,idx_col] = i
+        index_matrix[idx_row, idx_col] = i
 
     index_matrix.unsqueeze_(0)
     index_matrix.unsqueeze_(0)
-    return index_matrix
+    return index_matrix.type(torch.float)
 
 
 def img2mat(input_images, index_matrix):
@@ -111,16 +111,16 @@ def img2mat(input_images, index_matrix):
      """
     logger = logging.getLogger(__name__ + '.img2mat')
     # First create a tensor of shape : batch, features, index_matrix.size filled with zeros
-    image_matrix = input_images.new_zeros((input_images.size(0),
+    image_matrix = torch.zeros((input_images.size(0),
                                            input_images.size(1),
                                            index_matrix.size(-2),
-                                           index_matrix.size(-1)), dtype=torch.int)
+                                           index_matrix.size(-1)))
 
     logger.debug('image matrix shape : {}'.format(image_matrix.size()))
 
     for i in range(index_matrix.size(-2)):  # iterate over the rows of index matrix
         for j in range(index_matrix.size(-1)):  # iterate over the cols of index matrix
-            if index_matrix.data[0, 0, i, j] != -1:
+            if index_matrix[0, 0, i, j] != -1:
                 image_matrix[:, :, i, j] = input_images[:, :, int(index_matrix[0, 0, i, j])]
 
     return image_matrix
@@ -168,11 +168,13 @@ def pool_index_matrix(index_matrix, kernel_type='Pool', stride=2):
     """
     logger = logging.getLogger(__name__ + '.pool_index_matrix')
     if kernel_type == 'Pool':
-        weight = torch.Tensor([[1, 0], [0, 0]]).requires_grad_(False)
+        weight = torch.tensor([[1, 0], [0, 0]], dtype=torch.float).requires_grad_(False)
         padding = 0
     elif kernel_type == 'Square' or kernel_type == 'Hex':
-        weight = torch.Tensor([[0, 0, 0], [0, 1, 0], [0, 0, 0]]).requires_grad_(False)
+        weight = torch.tensor([[0, 0, 0], [0, 1, 0], [0, 0, 0]], dtype=torch.float).requires_grad_(False)
         padding = 1
+    else:
+        raise ValueError
     weight.unsqueeze_(0)
     weight.unsqueeze_(0)
 

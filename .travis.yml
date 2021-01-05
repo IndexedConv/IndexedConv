@@ -3,6 +3,8 @@ language: python
 python:
     # sets TRAVIS_PYTHON_VERSION
     - 3.6
+    - 3.7
+    - 3.8
 
 os:
     - linux

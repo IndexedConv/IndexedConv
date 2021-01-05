@@ -165,7 +165,7 @@ class IndexedConv(nn.Module):
         nbatch = input.shape[0]
         col = input[..., self.indices_] * self.mask_
         # col is of shape (N, C_in, K, Wo)
-        col = col.view(nbatch, -1, self.output_width)
+        col = col.reshape(nbatch, -1, self.output_width)
         out = torch.bmm(self.weight.view(self.out_channels, -1).expand(nbatch, -1, -1), col)
         if self.bias is not None:
             out = out + self.bias.unsqueeze(1)

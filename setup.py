@@ -20,8 +20,6 @@ setuptools.setup(
         "numpy",
         "matplotlib",
         "h5py",
-        "sphinxcontrib-katex"
-
     ],
     packages=setuptools.find_packages(),
     classifiers=[

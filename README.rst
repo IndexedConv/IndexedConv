@@ -52,8 +52,7 @@ Requirements
     "torchvision",
     "numpy",
     "matplotlib",
-    "h5py",
-    "sphinxcontrib-katex"
+    "h5py"
 
 
 Running an experiment

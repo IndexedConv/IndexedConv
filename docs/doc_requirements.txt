@@ -1,3 +1,8 @@
+torch>=1.7
+torchvision
+numpy
+matplotlib
+h5py
 Sphinx
 sphinxcontrib-katex
 sphinxcontrib-napoleon

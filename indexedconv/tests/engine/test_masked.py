@@ -33,7 +33,8 @@ class TestMaskedConv(unittest.TestCase):
                                                     [-6, 30, -13, 35, 1],
                                                     [-5, 8, -14, 19, -8],
                                                     [31, -13, 35, -3, -7],
-                                                    [13, -8, 20, -12, 32]], dtype=torch.float).unsqueeze(0).unsqueeze(0))
+                                                    [13, -8, 20, -12, 32]],
+                                                   dtype=torch.float).unsqueeze(0).unsqueeze(0))
 
     def test_maskedconvk5(self):
         torch.testing.assert_allclose(self.convk5(self.data),
@@ -41,7 +42,8 @@ class TestMaskedConv(unittest.TestCase):
                                                     [-15.,   78.,  -23.,  107.,   12.],
                                                     [-20.,   28.,  -29.,   49.,  -18.],
                                                     [85.,  -20.,  100.,   -1.,  -18.],
-                                                    [42.,  -15.,   55.,  -17.,   85.]], dtype=torch.float).unsqueeze(0))
+                                                    [42.,  -15.,   55.,  -17.,   85.]],
+                                                   dtype=torch.float).unsqueeze(0).unsqueeze(0))
 
 
 if __name__ == '__main__':

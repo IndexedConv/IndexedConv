@@ -13,8 +13,8 @@ Here you will find the code for the indexed operations as well as applied exampl
 
 `Documentation may be found online. <https://indexed-convolution.readthedocs.io/en/latest/>`_
 
-.. image:: https://travis-ci.org/IndexedConv/IndexedConv.svg?branch=master
-    :target: https://travis-ci.org/IndexedConv/IndexedConv
+.. image:: https://github.com/IndexedConv/IndexedConv/actions/workflows/tests.yml/badge.svg
+    :target: https://github.com/IndexedConv/IndexedConv/actions
 .. image:: https://readthedocs.org/projects/indexed-convolution/badge/?version=latest
     :target: https://indexed-convolution.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status

@@ -16,6 +16,7 @@
             "@type": "Person",
             "givenName": "Mikael",
             "familyName": "Jacquemont",
+            "@id": "https://orcid.org/0000-0002-4012-6930",
             "email": "jacquemont@lapp.in2p3.fr",
             "affiliation": {
                 "@type": "Organization",
@@ -43,6 +44,7 @@
             "@type": "Person",
             "givenName": "Thomas",
             "familyName": "Vuillaume",
+            "@id": "https://orcid.org/0000-0002-5686-2078",
             "email": "thomas.vuillaume@lapp.in2p3.fr",
             "affiliation": {
                 "@type": "Organization",
@@ -53,6 +55,7 @@
             "@type": "Person",
             "givenName": "Mikael",
             "familyName": "Jacquemont",
+            "@id": "https://orcid.org/0000-0002-4012-6930",
             "email": "jacquemont@lapp.in2p3.fr",
             "affiliation": {
                 "@type": "Organization",

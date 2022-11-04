@@ -1,0 +1,72 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "@type": "SoftwareSourceCode",
+    "license": "https://spdx.org/licenses/MIT",
+    "codeRepository": "git+https://github.com/IndexedConv/IndexedConv.git",
+    "contIntegration": "https://github.com/IndexedConv/IndexedConv/actions",
+    "dateCreated": "2018-12-05",
+    "datePublished": "2019-01-14",
+    "dateModified": "2022-01-20",
+    "downloadUrl": "https://zenodo.org/record/5884046/files/IndexedConv/IndexedConv-v1.3.1.zip",
+    "issueTracker": "https://github.com/IndexedConv/IndexedConv/issues",
+    "name": "IndexedConv",
+    "version": "1.3.1",
+    "softwareVersion": "1.3.1",
+    "maintainer": {
+            "@type": "Person",
+            "givenName": "Mikael",
+            "familyName": "Jacquemont",
+            "email": "jacquemont@lapp.in2p3.fr",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Univ. Savoie Mont-Blanc, CNRS, LAPP"
+            }
+        },
+    "readme": "https://raw.githubusercontent.com/IndexedConv/IndexedConv/master/README.rst",
+    "identifier": "10.5281/zenodo.2542651",
+    "description": "The indexed operations allow the user to perform convolution and pooling on non-Euclidian grids of data given that the neighbors pixels of each pixel is known and provided.\n\nIt gives an alternative to masking or resampling the data in order to apply standard Euclidian convolution. This solution has been developed in order to apply convolutional neural networks to data from physics experiments that propose specific pixels arrangements.\n\nIt is used in the GammaLearn project for the Cherenkov Telescope Array.\n\nHere you will find the code for the indexed operations as well as applied examples. The current implementation has been done for pytorch.",
+    "applicationCategory": "deep learning",
+    "funding": "ESCAPE 824064, ASTERICS 653477",
+    "isPartOf": "https://purl.org/gammalearn",
+    "funder": {
+        "@type": "Organization",
+        "name": "European Union's Horizon 2020 research and innovation programme"
+    },
+    "keywords": [
+        "CTA"
+    ],
+    "programmingLanguage": [
+        "Python 3"
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "givenName": "Thomas",
+            "familyName": "Vuillaume",
+            "email": "thomas.vuillaume@lapp.in2p3.fr",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Univ. Savoie Mont-Blanc, CNRS, LAPP"
+            }
+        },
+        {
+            "@type": "Person",
+            "givenName": "Mikael",
+            "familyName": "Jacquemont",
+            "email": "jacquemont@lapp.in2p3.fr",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Univ. Savoie Mont-Blanc, CNRS, LAPP"
+            }
+        },
+        {
+            "@type": "Person",
+            "givenName": "Antiga",
+            "familyName": "Luca",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Orobix"
+            }
+        }
+    ]
+}

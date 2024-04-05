@@ -12,8 +12,7 @@ python:
   install:
     # install dependencies from doc_requirements.txt
     - method: pip
-      path: docs
-      requirements: doc_requirements.txt
+      requirements: docs/doc_requirements.txt
     # install indexedconv
     - method: setuptools
       path: .

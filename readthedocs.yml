@@ -7,7 +7,13 @@ build:
   tools:
     python: "3.6"  # Update this to the Python version you need, 3.6 is also fine if that's what you require
 
+# Configuration for Python environment
 python:
   install:
+    # install dependencies from doc_requirements.txt
+    - method: pip
+      path: docs
+      requirements: doc_requirements.txt
+    # install indexedconv
     - method: setuptools
       path: .

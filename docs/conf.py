@@ -31,6 +31,8 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
     'sphinxcontrib.katex',
+    'sphinx.ext.mathjax',
+    'sphinxcontrib.bibtex',
 ]
 
 napoleon_use_ivar = True
@@ -52,7 +54,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -151,6 +153,9 @@ texinfo_documents = [
      author, 'indexedconv', 'One line description of project.',
      'Miscellaneous'),
 ]
+
+
+bibtex_bibfiles = ['references.bib']
 
 
 # -- Extension configuration -------------------------------------------------

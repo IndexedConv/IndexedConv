@@ -8,6 +8,7 @@ Welcome to indexedconv's documentation!
    README
    license
    examples
+   indexed_cnn
 
 .. toctree::
    :maxdepth: 3

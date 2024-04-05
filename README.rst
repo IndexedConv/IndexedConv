@@ -18,11 +18,11 @@ Here you will find the code for the indexed operations as well as applied exampl
 .. image:: https://readthedocs.org/projects/indexed-convolution/badge/?version=latest
     :target: https://indexed-convolution.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
-.. image:: https://anaconda.org/gammalearn/indexedconv/badges/installer/conda.svg
+.. image:: https://anaconda.org/gammalearn/indexedconv/badges/version.svg
     :target: https://anaconda.org/gammalearn/indexedconv
     
 Install
-=======
+-------
 
 Install from IndexedConv folder:
 
@@ -40,23 +40,14 @@ Install with pip:
 
 Install with conda:
 
+.. code-block:: bash
+
     conda install -c gammalearn indexedconv
 
 
-Requirements
-------------
-
-.. code-block:: bash
-
-    "torch>=1.4",
-    "torchvision",
-    "numpy",
-    "matplotlib",
-    "h5py"
-
 
 Running an experiment
-=====================
+---------------------
 For example, to train the network with indexed convolution on the CIFAR10 dataset transformed to hexagonal:
 
 .. code-block:: bash
@@ -66,7 +57,7 @@ For example, to train the network with indexed convolution on the CIFAR10 datase
 In order to train on the AID dataset, it must be downloaded and can be found `here <https://captain-whu.github.io/AID/>`_.
 
 Authors
-=======
+-------
 
 The development of the indexed convolution is born from a collaboration between physicists and computer scientists.
 
@@ -75,15 +66,13 @@ The development of the indexed convolution is born from a collaboration between 
 - Thomas Vuillaume, LAPP (CNRS)
 
 References
-==========
-Please cite:
+----------
 
-Publication
------------
+If you use the IndexedConv library, please cite:
 
+Jacquemont, M.; Antiga, L.; Vuillaume, T.; Silvestri, G.; Benoit, A.; Lambert, P. and Maurin, G. (2019). **Indexed Operations for Non-rectangular Lattices Applied to Convolutional Neural Networks**. In Proceedings of the 14th International Joint Conference on Computer Vision, Imaging and Computer Graphics Theory and Applications - Volume 5: VISAPP, ISBN 978-989-758-354-4, pages 362-371. DOI: 10.5220/0007364303620371,
 https://www.scitepress.org/Link.aspx?doi=10.5220/0007364303620371
 
-Jacquemont, M.; Antiga, L.; Vuillaume, T.; Silvestri, G.; Benoit, A.; Lambert, P. and Maurin, G. (2019). **Indexed Operations for Non-rectangular Lattices Applied to Convolutional Neural Networks**. In Proceedings of the 14th International Joint Conference on Computer Vision, Imaging and Computer Graphics Theory and Applications - Volume 5: VISAPP, ISBN 978-989-758-354-4, pages 362-371. DOI: 10.5220/0007364303620371
 
 .. code-block::
 
@@ -106,7 +95,7 @@ If you want to use and refer to the code implementation of IndexedConv, please c
    :target: https://zenodo.org/badge/latestdoi/150430897
 
 Contributing
-============
+------------
 
 All contributions are welcome.    
 

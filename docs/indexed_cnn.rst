@@ -8,6 +8,10 @@ Jacquemont, M.; Antiga, L.; Vuillaume, T.; Silvestri, G.; Benoit, A.; Lambert, P
 https://hal.science/hal-02087157/
 
 
+The content of this section, as well as the associated images, are distributed under a CC BY-NC-ND 4.0 DEED license.
+You can find more information about this license here: https://creativecommons.org/licenses/by-nc-nd/4.0/
+
+
 .. _`sec:authors`:
 
 **Authors**

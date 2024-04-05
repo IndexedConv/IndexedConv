@@ -7,3 +7,4 @@ Sphinx
 sphinxcontrib-katex
 sphinxcontrib-napoleon
 sphinx-rtd-theme
+sphinxcontrib-bibtex

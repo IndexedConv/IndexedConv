@@ -6,8 +6,8 @@
     "contIntegration": "https://github.com/IndexedConv/IndexedConv/actions",
     "dateCreated": "2018-12-05",
     "datePublished": "2019-01-14",
-    "dateModified": "2022-01-20",
-    "downloadUrl": "https://zenodo.org/record/5884046/files/IndexedConv/IndexedConv-v1.3.1.zip",
+    "dateModified": "2024-04-05",
+    "downloadUrl": "https://github.com/IndexedConv/IndexedConv/archive/refs/tags/v1.3.2.zip",
     "issueTracker": "https://github.com/IndexedConv/IndexedConv/issues",
     "name": "IndexedConv",
     "version": "1.3.2",
@@ -24,7 +24,7 @@
             }
         },
     "readme": "https://raw.githubusercontent.com/IndexedConv/IndexedConv/master/README.rst",
-    "identifier": "10.5281/zenodo.2542651",
+    "identifier": "https://doi.org/10.5281/zenodo.2542651",
     "description": "The indexed operations allow the user to perform convolution and pooling on non-Euclidian grids of data given that the neighbors pixels of each pixel is known and provided.\n\nIt gives an alternative to masking or resampling the data in order to apply standard Euclidian convolution. This solution has been developed in order to apply convolutional neural networks to data from physics experiments that propose specific pixels arrangements.\n\nIt is used in the GammaLearn project for the Cherenkov Telescope Array.\n\nHere you will find the code for the indexed operations as well as applied examples. The current implementation has been done for pytorch.",
     "applicationCategory": "deep learning",
     "funding": "ESCAPE 824064, ASTERICS 653477",
@@ -37,7 +37,7 @@
         "CTA"
     ],
     "programmingLanguage": [
-        "Python 3"
+        "Python 3.8"
     ],
     "author": [
         {

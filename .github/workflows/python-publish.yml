@@ -34,3 +34,42 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+
+  update-codemeta:
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: master
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Update codemeta.json
+      env:
+        TAG: ${{ github.ref_name }}
+        RELEASE_DATE: ${{ github.event.release.published_at }}
+      run: |
+        python - <<'EOF'
+        import json, os
+        tag = os.environ['TAG']
+        version = tag.lstrip('v')
+        date = os.environ['RELEASE_DATE'][:10]
+        with open('codemeta.json', 'r') as f:
+            data = json.load(f)
+        data['version'] = version
+        data['softwareVersion'] = version
+        data['dateModified'] = date
+        data['downloadUrl'] = f'https://github.com/IndexedConv/IndexedConv/archive/refs/tags/{tag}.zip'
+        with open('codemeta.json', 'w') as f:
+            json.dump(data, f, indent=4)
+            f.write('\n')
+        EOF
+    - name: Commit and push codemeta.json
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add codemeta.json
+        git diff --staged --quiet || git commit -m "Update codemeta.json for release ${{ github.ref_name }}"
+        git push
